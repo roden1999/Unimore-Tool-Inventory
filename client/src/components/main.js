@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react'
-import { Menu, Grid, Segment, Icon, Image, Button, Dropdown, Card } from 'semantic-ui-react'
+import React, { useState, useEffect, useContext } from 'react';
+import { Menu, Segment, Icon, Dropdown, Card } from 'semantic-ui-react';
 import 'semantic-ui-css/semantic.min.css';
 
-//Components
+// Components
 import MachineSpareParts from './machineSpareParts';
 import Tools from './tools';
 import Consumables from './consumables';
@@ -20,144 +20,177 @@ const Main = () => {
   const [role, setRole] = useState("");
 
   useEffect(() => {
-    const data = sessionStorage.getItem('page');
-    if (data) setPage(data);
+    const savedPage = sessionStorage.getItem('page');
+    if (savedPage) setPage(savedPage);
 
     const user = JSON.parse(sessionStorage.getItem('user'));
-    setRole(user.role);
-    setName(user.Name);
+    setRole(user?.role || "");
+    setName(user?.Name || "");
   }, []);
+
   useEffect(() => {
     sessionStorage.setItem('page', page);
-  });
+  }, [page]);
 
-  const handlePage = (value) => {
-    setPage(value);
-  }
+  const handlePage = (value) => setPage(value);
 
   const logOut = () => {
-    setUserData({
-      token: undefined,
-      user: undefined
-    });
-    sessionStorage.setItem("auth-token", "");
-    sessionStorage.setItem("userData", "");
-    sessionStorage.setItem("user", "");
-    sessionStorage.setItem("page", "MENU");
-    // Storage.empty();
-  }
+    setUserData({ token: undefined, user: undefined });
+    sessionStorage.clear();
+  };
 
   return (
-    <div style={{ width: '100%', }}>
-      <Menu stackable inverted fixed style={{ position: "sticky", top: 0, zIndex: 1000 }}>
+    <div style={styles.container}>
+      
+      {/* NAVIGATION BAR */}
+      <Menu stackable inverted fixed="top" style={styles.menu}>
         <Menu.Item>
-        <img src="unimore-logo.png" /> {" Unimore Trading"}
+          <img src="unimore-logo.png" alt="logo" style={styles.logo} /> 
+          <span style={{ marginLeft: 8 }}>Unimore Trading</span>
         </Menu.Item>
 
         <Menu.Menu position="right">
-          {page !== "MENU" &&
+          {page !== "MENU" && (
             <Menu.Item onClick={() => handlePage("MENU")}>
-              <Icon color='white' name='th large' /> Menu
+              <Icon name='th large' /> Menu
             </Menu.Item>
-          }
+          )}
+
           <Dropdown item text={name}>
             <Dropdown.Menu>
-              <Dropdown.Item onClick={logOut}><Icon color='white' name='log out' /> Logout</Dropdown.Item>
+              <Dropdown.Item onClick={logOut}>
+                <Icon name='log out' /> Logout
+              </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
         </Menu.Menu>
       </Menu>
 
-      <div style={{ paddingLeft: 30, paddingRight: 30 }}>
-        <Segment style={{ height: '100%', minHeight: '95vh', maxHeight: '95vh' }}>
-          {page === "SPARE PARTS" && role !== "Tool Keeper" &&
-            <MachineSpareParts />
-          }
-          {page === "TOOLS" &&
-            <Tools />
-          }
-          {page === "CONSUMABLES" &&
-            <Consumables />
-          }
-          {page === "RECORDS" &&
-            <Records />
-          }
-          {page === "EMPLOYEES" &&
-            <Employees />
-          }
-          {page === "FORMS" &&
-            <Forms />
-          }
-          {page === "MANAGE_USER" && role === "Administrator" &&
-            <Users />
-          }
-          {page === "MENU" &&
-            <Card.Group itemsPerRow={4}>
-              {role !== "Tool Keeper" &&
+      {/* MAIN PAGE CONTAINER */}
+      <div style={styles.pageContent}>
+        <Segment style={styles.segment}>
+          
+          {/* PAGE ROUTING */}
+          {page === "SPARE PARTS" && role !== "Tool Keeper" && <MachineSpareParts />}
+          {page === "TOOLS" && <Tools />}
+          {page === "CONSUMABLES" && <Consumables />}
+          {page === "RECORDS" && <Records />}
+          {page === "EMPLOYEES" && <Employees />}
+          {page === "FORMS" && <Forms />}
+          {page === "MANAGE_USER" && role === "Administrator" && <Users />}
+
+          {/* MENU DASHBOARD */}
+          {page === "MENU" && (
+            <Card.Group
+              itemsPerRow={4}       // desktop
+              stackable             // stack on tablet/mobile
+              doubling              // double rows on smaller screens
+              centered
+              style={{ marginTop: 20, justifyContent: 'center' }}
+            >
+              {role !== "Tool Keeper" && (
                 <Card
                   link
-                  header={<h1>MACHINE SPARE PARTS</h1>}
-                  style={{ minHeight: "20vh", backgroundImage: `url("spareparts.png")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "right" }}
+                  header={<h3 style={styles.cardTitle}>MACHINE SPARE PARTS</h3>}
+                  style={{ ...styles.menuCard, backgroundImage: `url("spareparts.png")` }}
                   onClick={() => handlePage("SPARE PARTS")}
-                  color="blue"
                 />
-              }
+              )}
 
               <Card
                 link
-                header={<h1>TOOLS</h1>}
-                style={{ minHeight: "20vh", backgroundImage: `url("tools.png")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", }}
+                header={<h3 style={styles.cardTitle}>TOOLS</h3>}
+                style={{ ...styles.menuCard, backgroundImage: `url("tools.png")` }}
                 onClick={() => handlePage("TOOLS")}
-                color="blue"
               />
 
               <Card
                 link
-                header={<h1>CONSUMABLES</h1>}
-                style={{ minHeight: "20vh", backgroundImage: `url("consumables.jpg")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center" }}
+                header={<h3 style={styles.cardTitle}>CONSUMABLES</h3>}
+                style={{ ...styles.menuCard, backgroundImage: `url("consumables.jpg")` }}
                 onClick={() => handlePage("CONSUMABLES")}
-                color="blue"
               />
 
               <Card
                 link
-                header={<h1 style={{ backgroundColor: 'white' }}>BORROWED / RETURNED</h1>}
-                style={{ minHeight: "20vh", backgroundImage: `url("records.jpeg")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", }}
+                header={<h3 style={{ ...styles.cardTitle, backgroundColor: 'white' }}>BORROWED / RETURNED</h3>}
+                style={{ ...styles.menuCard, backgroundImage: `url("records.jpeg")` }}
                 onClick={() => handlePage("RECORDS")}
-                color="blue"
               />
 
               <Card
                 link
-                header={<h1>PROJECTS</h1>}
-                style={{ minHeight: "20vh", backgroundImage: `url("projects.jpg")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center" }}
+                header={<h3 style={styles.cardTitle}>PROJECTS</h3>}
+                style={{ ...styles.menuCard, backgroundImage: `url("projects.jpg")` }}
                 onClick={() => handlePage("FORMS")}
-                color="blue"
               />
 
               <Card
                 link
-                header={<h1>EMPLOYEES</h1>}
-                style={{ minHeight: "20vh", backgroundImage: `url("employees.png")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center" }}
+                header={<h3 style={styles.cardTitle}>EMPLOYEES</h3>}
+                style={{ ...styles.menuCard, backgroundImage: `url("employees.png")` }}
                 onClick={() => handlePage("EMPLOYEES")}
-                color="blue"
               />
 
-              {role === "Administrator" &&
+              {role === "Administrator" && (
                 <Card
                   link
-                  header={<h1>USERS</h1>}
-                  style={{ minHeight: "20vh", backgroundImage: `url("users.png")`, backgroundSize: "cover", backgroundRepeat: "no-repeat", backgroundPosition: "center" }}
+                  header={<h3 style={styles.cardTitle}>USERS</h3>}
+                  style={{ ...styles.menuCard, backgroundImage: `url("users.png")` }}
                   onClick={() => handlePage("MANAGE_USER")}
-                  color="blue"
                 />
-              }
+              )}
             </Card.Group>
-          }
+          )}
+
         </Segment>
       </div>
-    </div >
+    </div>
   );
-}
+};
 
 export default Main;
+
+// ---------------------- STYLES ---------------------- //
+const styles = {
+  container: {
+    width: '100%',
+    overflowX: 'hidden'
+  },
+
+  menu: {
+    padding: '0.7rem 1rem'
+  },
+
+  logo: {
+    width: 35,
+    height: 'auto'
+  },
+
+  pageContent: {
+    padding: '80px 10px 20px 10px'   // spacing for fixed navbar
+  },
+
+  segment: {
+    minHeight: '90vh',
+    overflowY: 'auto'
+  },
+
+  menuCard: {
+    minHeight: "20vh",
+    maxWidth: 250,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    cursor: "pointer",
+    display: "flex",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+    padding: "1rem"
+  },
+
+  cardTitle: {
+    fontSize: "1.2rem",
+    padding: "5px 10px",
+    background: "rgba(255,255,255,0.8)"
+  }
+};
