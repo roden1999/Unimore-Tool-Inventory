@@ -13,59 +13,59 @@ const moment = require("moment");
 
 const customMultiSelectStyle = {
     clearIndicator: (ci) => ({
-      ...ci
-      // backgroundColor: '#383f48',
+        ...ci
+        // backgroundColor: '#383f48',
     }),
     dropdownIndicator: (ci) => ({
-      ...ci
-      // backgroundColor: "#383f48"
+        ...ci
+        // backgroundColor: "#383f48"
     }),
     indicatorsContainer: (ci) => ({
-      ...ci,
-      color: "red",
-      // backgroundColor: "#383f48",
-      position: "sticky",
-      top: 0,
-      height: "40px",
-      zIndex: "100"
+        ...ci,
+        color: "red",
+        // backgroundColor: "#383f48",
+        position: "sticky",
+        top: 0,
+        height: "40px",
+        zIndex: "100"
     }),
     control: (base) => ({
-      ...base,
-      height: 40,
-      minHeight: 40,
-      overflowX: "hidden",
-      overflowY: "auto",
-      borderRadiusTopRight: 0,
-      borderRadiusBottomRight: 0,
-      width: "100%"
-      // backgroundColor: '#383f48',
+        ...base,
+        height: 40,
+        minHeight: 40,
+        overflowX: "hidden",
+        overflowY: "auto",
+        borderRadiusTopRight: 0,
+        borderRadiusBottomRight: 0,
+        width: "100%"
+        // backgroundColor: '#383f48',
     }),
     option: (provided, state) => ({
-      ...provided,
-      color: state.isSelected ? 'white' : 'black',
-      padding: 20,
-      zIndex: 1000
+        ...provided,
+        color: state.isSelected ? 'white' : 'black',
+        padding: 20,
+        zIndex: 1000
     }),
     singleValue: base => ({
-      ...base,
-      // color: "#fff"
+        ...base,
+        // color: "#fff"
     }),
     multiValue: (styles, { data }) => {
-      return {
-        ...styles,
-        backgroundColor: "#1E8EFF",
-      };
+        return {
+            ...styles,
+            backgroundColor: "#1E8EFF",
+        };
     },
     multiValueLabel: (styles, { data }) => ({
-      ...styles,
-      color: "#00000",
+        ...styles,
+        color: "#00000",
     }),
     input: base => ({
-      ...base,
-      // color: "#fff"
+        ...base,
+        // color: "#fff"
     }),
     menu: (provided) => ({ ...provided, zIndex: 9999 }),
-  };
+};
 
 const customSelectStyle = {
     control: base => ({
@@ -886,9 +886,16 @@ const MachineSpareParts = () => {
                     <Button onClick={handleCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddSP}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddSP} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddSP} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -977,9 +984,16 @@ const MachineSpareParts = () => {
                     <Button onClick={handleCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditSP}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleEditSP} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditSP} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -996,9 +1010,16 @@ const MachineSpareParts = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteItem}>
-                        <Icon name='trash' />Delete
-                    </Button>
+                    {!loader &&
+                        <Button negative onClick={handleDeleteItem} disabled={loader}>
+                            <Icon name='trash' /> Delete
+                        </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteItem} disabled={loader}>
+                            <Icon loading name='spinner' /> 
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
         </Grid>
