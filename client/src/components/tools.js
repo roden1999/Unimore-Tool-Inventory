@@ -4,6 +4,7 @@ import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useMediaQuery } from 'react-responsive';
 import moment from 'moment';
 
 //import pdfmake
@@ -96,6 +97,55 @@ const customSelectStyle = {
     menu: (provided) => ({ ...provided, zIndex: 9999 }),
 };
 
+// Card version for mobile view
+const ToolCard = ({ tool, onEdit, onDelete }) => {
+    return (
+        <div
+            style={{
+                border: '1px solid #ddd',
+                borderRadius: 8,
+                padding: 15,
+                marginBottom: 15,
+                backgroundColor: 'white',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+            }}
+        >
+            <div><strong>Name:</strong> {tool.name}</div>
+            <div><strong>Serial No.:</strong> {tool.serialNo}</div>
+            <div><strong>Brand:</strong> {tool.brand || "No Brand"}</div>
+            <div><strong>Category:</strong> {tool.category}</div>
+            <div><strong>Date Purchased:</strong> {tool.datePurchased ? moment(tool.datePurchased).format("MM/DD/yyyy") : "No Date"}</div>
+            <div>
+                <strong>Status:</strong>{' '}
+                <span
+                    style={{
+                        color:
+                            tool.status === "Good"
+                                ? "green"
+                                : tool.status === "For Repair"
+                                    ? "orange"
+                                    : "red",
+                    }}
+                >
+                    {tool.status}
+                </span>
+            </div>
+            <div><strong>Location:</strong> {tool.location}</div>
+            <div><strong>Description:</strong> {tool.description}</div>
+            <div>
+                <strong>Available:</strong>{' '}
+                <span style={{ color: tool.available === "On Hand" ? "green" : "red" }}>
+                    {tool.available}
+                </span>
+            </div>
+            <div style={{ marginTop: 10, display: 'flex', justifyContent: 'space-between' }}>
+                <Button basic color='grey' onClick={() => onEdit(tool)}>Edit</Button>
+                <Button basic color='grey' onClick={() => onDelete(tool.id)}>Delete</Button>
+            </div>
+        </div>
+    );
+};
+
 const Tools = () => {
     const [toolsData, setToolsData] = useState(null);
     const [selectedTools, setSelectedTools] = useState([]);
@@ -128,6 +178,7 @@ const Tools = () => {
     const showEllipsis = true;
     const showFirstAndLastNav = true;
     const showPreviousAndNextNav = true;
+
 
     useEffect(() => {
         var data = {
@@ -560,7 +611,7 @@ const Tools = () => {
                             unimore: 'https://i.ibb.co/mTwt2jt/unimore-logo-back-black.png'
                         }
                     }
-    
+
                     document.content.push({
                         // layout: 'lightHorizontalLines',
                         table: {
@@ -581,7 +632,7 @@ const Tools = () => {
                             ]
                         },
                     });
-    
+
                     response.data.forEach(y => {
                         document.content.push({
                             // layout: 'lightHorizontalLines',
@@ -604,7 +655,7 @@ const Tools = () => {
                             },
                         });
                     });
-    
+
                     pdfMake.tableLayouts = {
                         exampleLayout: {
                             hLineWidth: function (i, node) {
@@ -627,7 +678,7 @@ const Tools = () => {
                             }
                         }
                     };
-    
+
                     // pdfMake.createPdf(document).download();
                     pdfMake.createPdf(document).print({}, window.frames['printPdf']);
                 } else {
@@ -652,7 +703,7 @@ const Tools = () => {
                             unimore: 'https://i.ibb.co/mTwt2jt/unimore-logo-back-black.png'
                         }
                     }
-    
+
                     document.content.push({
                         // layout: 'lightHorizontalLines',
                         table: {
@@ -673,7 +724,7 @@ const Tools = () => {
                             ]
                         },
                     });
-    
+
                     obj.forEach(y => {
                         document.content.push({
                             // layout: 'lightHorizontalLines',
@@ -696,7 +747,7 @@ const Tools = () => {
                             },
                         });
                     });
-    
+
                     pdfMake.tableLayouts = {
                         exampleLayout: {
                             hLineWidth: function (i, node) {
@@ -719,7 +770,7 @@ const Tools = () => {
                             }
                         }
                     };
-    
+
                     // pdfMake.createPdf(document).download();
                     pdfMake.createPdf(document).print({}, window.frames['printPdf']);
                 }
@@ -733,270 +784,189 @@ const Tools = () => {
             });
     }
 
+
+    const isMobile = useMediaQuery({ maxWidth: 767 });
+
     return (
         <div>
             <ToastContainer />
-            <Button size='large' style={{ float: 'left' }} onClick={() => setAddModal(true)}><Icon name='plus' />Add Tool</Button>
 
-            <div style={{
-                float: 'right', width: '30%', zIndex: 100, marginBottom: 30,
-            }}>
-                <Select
-                    defaultValue={selectedTools}
-                    options={ToolsOption(toolsOptionsList)}
-                    onChange={e => setSelectedTools(e)}
-                    placeholder='Search...'
-                    isClearable
-                    isMulti
-                    theme={(theme) => ({
-                        ...theme,
-                        // borderRadius: 0,
-                        colors: {
-                            ...theme.colors,
-                            text: 'black',
-                            primary25: '#66c0f4',
-                            primary: '#B9B9B9',
-                        },
-                    })}
-                    styles={customMultiSelectStyle}
-                />
+            {/* Top Controls */}
+            <div
+                style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 20,
+                    gap: 10,
+                }}
+            >
+                <Button size='large' onClick={() => setAddModal(true)}>
+                    <Icon name='plus' /> Add Tool
+                </Button>
+
+                <div style={{ flex: '1 1 300px', minWidth: 200 }}>
+                    <Select
+                        defaultValue={selectedTools}
+                        options={ToolsOption(toolsOptionsList)}
+                        onChange={e => setSelectedTools(e)}
+                        placeholder='Search...'
+                        isClearable
+                        isMulti
+                        theme={theme => ({
+                            ...theme,
+                            colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' },
+                        })}
+                        styles={customMultiSelectStyle}
+                    />
+                </div>
+
+                <Popup
+                    on='click'
+                    open={popUpState}
+                    onOpen={() => setPopUpState(true)}
+                    onClose={() => setPopUpState(false)}
+                    pinned
+                    size='huge'
+                    flowing
+                    position="bottom center"
+                    trigger={
+                        <Button icon size='large'>
+                            <Icon name='filter' />
+                        </Button>
+                    }
+                >
+                    <div className="ui link celled selection list" style={{ padding: 20, width: 300 }}>
+                        <h2>Filter</h2>
+                        <Form>
+                            <label><strong>Brand</strong></label>
+                            <Select
+                                defaultValue={brandFilter}
+                                options={BrandOption(brandOptionList)}
+                                onChange={e => setBrandFilter(e)}
+                                placeholder='Brand...'
+                                isClearable
+                                theme={theme => ({ ...theme, colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' } })}
+                                styles={customSelectStyle}
+                            />
+
+                            <label><strong>Category</strong></label>
+                            <Select
+                                defaultValue={categoryFilter}
+                                options={CategoryOption()}
+                                onChange={e => setCategoryFilter(e)}
+                                placeholder='Category...'
+                                isClearable
+                                theme={theme => ({ ...theme, colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' } })}
+                                styles={customSelectStyle}
+                            />
+
+                            <label><strong>Status</strong></label>
+                            <Select
+                                defaultValue={statusFilter}
+                                options={StatusOption()}
+                                onChange={e => setStatusFilter(e)}
+                                placeholder='Status...'
+                                isClearable
+                                theme={theme => ({ ...theme, colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' } })}
+                                styles={customSelectStyle}
+                            />
+                        </Form>
+                        <div style={{ marginTop: 20, display: 'flex', justifyContent: 'center' }}>
+                            <Button onClick={handleClearFilter}><Icon name='close' /> Clear All</Button>
+                        </div>
+                    </div>
+                </Popup>
+
+                <Button size='large' onClick={() => exportToPDF()}>
+                    <Icon name='file pdf' /> Export to PDF
+                </Button>
             </div>
 
-            <Popup
-                on='click'
-                open={popUpState}
-                onOpen={() => setPopUpState(true)}
-                onClose={() => setPopUpState(false)}
-                pinned
-                size='huge'
-                flowing
-                position="bottom center"
-                trigger={
-                    <Button icon size='large' style={{ float: 'right' }}>
-                        <Icon name='filter' />
-                    </Button>
-                }
-            >
-                <div class="ui link celled selection list" style={{ "padding": "20px", "width": "300px" }}>
-                    <h2>Filter</h2>
-                    <Form>
-                        <label><strong>Brand</strong></label>
-                        <Select
-                            defaultValue={brandFilter}
-                            options={BrandOption(brandOptionList)}
-                            onChange={e => setBrandFilter(e)}
-                            placeholder='Brand...'
-                            isClearable
-                            theme={(theme) => ({
-                                ...theme,
-                                // borderRadius: 0,
-                                colors: {
-                                    ...theme.colors,
-                                    text: 'black',
-                                    primary25: '#66c0f4',
-                                    primary: '#B9B9B9',
-                                },
-                            })}
-                            styles={customSelectStyle}
-                        />
-
-                        <br />
-
-                        <label><strong>Category</strong></label>
-                        <Select
-                            defaultValue={categoryFilter}
-                            options={CategoryOption()}
-                            onChange={e => setCategoryFilter(e)}
-                            placeholder='Category...'
-                            isClearable
-                            theme={(theme) => ({
-                                ...theme,
-                                // borderRadius: 0,
-                                colors: {
-                                    ...theme.colors,
-                                    text: 'black',
-                                    primary25: '#66c0f4',
-                                    primary: '#B9B9B9',
-                                },
-                            })}
-                            styles={customSelectStyle}
-                        />
-                        <br />
-
-                        <label><strong>Status</strong></label>
-                        <Select
-                            defaultValue={statusFilter}
-                            options={StatusOption()}
-                            onChange={e => setStatusFilter(e)}
-                            placeholder='Category...'
-                            isClearable
-                            theme={(theme) => ({
-                                ...theme,
-                                // borderRadius: 0,
-                                colors: {
-                                    ...theme.colors,
-                                    text: 'black',
-                                    primary25: '#66c0f4',
-                                    primary: '#B9B9B9',
-                                },
-                            })}
-                            styles={customSelectStyle}
-                        />
-                    </Form>
-                    <div style={{ marginTop: 20, alignContent: 'center', float: 'center', display: 'flex', justifyContent: 'center' }}>
-                        <Button onClick={handleClearFilter} style={{ margin: '0 auto' }}>
-                            <Icon name='close' /> Clear All
-                        </Button>
-                    </div>
-                </div>
-            </Popup>
-
-            <Button size='large' style={{ float: 'right' }} onClick={() => exportToPDF()}><Icon name='file pdf' />Export to PDF</Button>
-
-            <div style={{ width: "100%", overflowY: 'scroll', height: '100%', maxHeight: '78vh', }}>
-                <Table celled size='large' color='blue'>
-                    <Table.Header style={{ position: "sticky", top: 0 }}>
-                        <Table.Row>
-                            <Table.HeaderCell rowSpan='2'>Name</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Serial No.</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Brand</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Category</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Date Purchased</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Status</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Location</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Description</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Available</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
-                        </Table.Row>
-                    </Table.Header>
-
-                    {toolsList !== null && loader !== true && toolsList.map(x =>
-                        <Table.Body>
+            {/* Table or Card List */}
+            <div style={{ width: '100%', maxHeight: '78vh', overflowY: 'auto', overflowX: isMobile ? 'hidden' : 'auto' }}>
+                {isMobile ? (
+                    // Mobile card list view
+                    toolsList && !loader && toolsList.length > 0 ? (
+                        toolsList.map(tool => (
+                            <ToolCard
+                                key={tool.id}
+                                tool={tool}
+                                onEdit={handleOpenEditModal}
+                                onDelete={handleOpenDeletePopup}
+                            />
+                        ))
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: 120 }}>
+                            <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
+                        </div>
+                    )
+                ) : (
+                    // Desktop table view
+                    <Table celled size='large' color='blue' compact>
+                        <Table.Header style={{ position: 'sticky', top: 0, zIndex: 1, background: 'white' }}>
                             <Table.Row>
-                                <Table.Cell>{x.name}</Table.Cell>
-                                <Table.Cell>{x.serialNo}</Table.Cell>
-                                <Table.Cell>{x.brand ? x.brand : "No Brand"}</Table.Cell>
-                                <Table.Cell>{x.category}</Table.Cell>
-                                <Table.Cell>{x.datePurchased ? moment(x.datePurchased).format("MM/DD/yyyy") : "No Date"}</Table.Cell>
-                                <Table.Cell>
-                                    {x.status === "Good" &&
-                                        <a style={{ color: "green" }}>
-                                            <Icon name='info circle' />
-                                            {x.status}
-                                        </a>
-                                    }
-                                    {x.status === "For Repair" &&
-                                        <a style={{ color: "orange" }}>
-                                            <Icon name='info circle' />
-                                            {x.status}
-                                        </a>
-                                    }
-                                    {x.status === "For Replacement" &&
-                                        <a style={{ color: "red" }}>
-                                            <Icon name='info circle' />
-                                            {x.status}
-                                        </a>
-                                    }
-                                </Table.Cell>
-                                <Table.Cell>{x.location}</Table.Cell>
-                                <Table.Cell>{x.description}</Table.Cell>
-                                <Table.Cell>
-                                    {x.available === "On Hand" &&
-                                        <a style={{ color: "green" }}>
-                                            {x.available}
-                                        </a>
-                                    }
-                                    {x.available === "Borrowed" &&
-                                        <a style={{ color: "red" }}>
-                                            {x.available}
-                                        </a>
-                                    }
-                                </Table.Cell>
-                                <Table.Cell style={{ textAlign: 'center' }}>
-                                    <div className='ui two buttons'>
-                                        <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                            Edit
-                                        </Button>
-                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </Table.Cell>
+                                <Table.HeaderCell rowSpan='2'>Name</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Serial No.</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Brand</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Category</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Date Purchased</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Status</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Location</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Description</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2'>Available</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
                             </Table.Row>
+                        </Table.Header>
+
+                        <Table.Body>
+                            {toolsList && !loader
+                                ? toolsList.map(x => (
+                                    <Table.Row key={x.id}>
+                                        <Table.Cell>{x.name}</Table.Cell>
+                                        <Table.Cell>{x.serialNo}</Table.Cell>
+                                        <Table.Cell>{x.brand || "No Brand"}</Table.Cell>
+                                        <Table.Cell>{x.category}</Table.Cell>
+                                        <Table.Cell>{x.datePurchased ? moment(x.datePurchased).format("MM/DD/yyyy") : "No Date"}</Table.Cell>
+                                        <Table.Cell>
+                                            <a style={{ color: x.status === "Good" ? "green" : x.status === "For Repair" ? "orange" : "red" }}>
+                                                <Icon name='info circle' /> {x.status}
+                                            </a>
+                                        </Table.Cell>
+                                        <Table.Cell>{x.location}</Table.Cell>
+                                        <Table.Cell>{x.description}</Table.Cell>
+                                        <Table.Cell>
+                                            <a style={{ color: x.available === "On Hand" ? "green" : "red" }}>{x.available}</a>
+                                        </Table.Cell>
+                                        <Table.Cell style={{ textAlign: 'center' }}>
+                                            <div className='ui two buttons'>
+                                                <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>Edit</Button>
+                                                <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>Delete</Button>
+                                            </div>
+                                        </Table.Cell>
+                                    </Table.Row>
+                                ))
+                                : null}
                         </Table.Body>
-                    )}
-                </Table>
+                    </Table>
+                )}
 
-                {/*  <Card.Group itemsPerRow={4} style={{ marginTop: 40, margin: '0 auto', width: '100%', backgroundColor: '#EEEEEE', overflowY: 'scroll', height: '100%', maxHeight: '80vh', }}>
-                    {toolsList !== null && loader !== true && toolsList.map(x =>
-                        <Card color='blue'>
-                            <Card.Content>
-                                <Card.Header>{x.name}</Card.Header>
-                                <Card.Meta>{x.serialNo}</Card.Meta>
-                                <Card.Description>
-                                    <b>Brand:</b> {x.brand ? x.brand : "No Brand"}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Date Purchased:</b> {x.datePurchased ? moment(x.datePurchased).format("MMMM DD, yyyy") : "No Date"}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Category:</b> {x.category}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Location:</b> {x.location}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Description:</b> {x.description}
-                                </Card.Description>
-                                <Card.Content style={{ marginTop: 10, marginBottom: 20 }}>
-                                    {x.status === "Good" &&
-                                        <a style={{ color: "green" }}>
-                                            <Icon name='info circle' />
-                                            <b>Status:</b> {x.status}
-                                        </a>
-                                    }
-                                    {x.status === "For Repair" &&
-                                        <a style={{ color: "orange" }}>
-                                            <Icon name='info circle' />
-                                            <b>Status:</b> {x.status}
-                                        </a>
-                                    }
-                                    {x.status === "For Replacement" &&
-                                        <a style={{ color: "red" }}>
-                                            <Icon name='info circle' />
-                                            <b>Status:</b> {x.status}
-                                        </a>
-                                    }
-                                </Card.Content>
-
-                                <Card.Content extra>
-                                    <div className='ui two buttons'>
-                                        <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                            Edit
-                                        </Button>
-                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </Card.Content>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </Card.Group> */}
-
-                {toolsList === null || toolsList.length === 0 && loader !== true &&
+                {/* Empty / Loader States */}
+                {(!toolsList || toolsList.length === 0) && !loader && (
                     <div style={{ textAlign: 'center', padding: 120 }}>
                         <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
                     </div>
-                }
-                {loader === true &&
-                    <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                        <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
+                )}
+                {loader && (
+                    <div style={{ textAlign: 'center', marginTop: 50 }}>
+                        <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4' }} />
                     </div>
-                }
-
+                )}
             </div>
-            {Object.keys(selectedTools).length === 0 &&
+
+            {/* Pagination */}
+            {Object.keys(selectedTools).length === 0 && (
                 <Pagination
                     activePage={toolPage}
                     boundaryRange={boundaryRange}
@@ -1004,7 +974,6 @@ const Tools = () => {
                     size='mini'
                     siblingRange={siblingRange}
                     totalPages={totalTools / 12}
-                    // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
                     ellipsisItem={showEllipsis ? undefined : null}
                     firstItem={showFirstAndLastNav ? undefined : null}
                     lastItem={showFirstAndLastNav ? undefined : null}
@@ -1012,7 +981,7 @@ const Tools = () => {
                     nextItem={showPreviousAndNextNav ? undefined : null}
                     style={{ float: 'right', marginTop: 10 }}
                 />
-            }
+            )}
 
             <Modal
                 size="mini"
@@ -1132,9 +1101,16 @@ const Tools = () => {
                     <Button onClick={handleCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddTools}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddTools} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddTools} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1266,9 +1242,16 @@ const Tools = () => {
                     <Button onClick={handleCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditTools}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleEditTools} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditTools} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1285,9 +1268,16 @@ const Tools = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteEmployee}>
-                        <Icon name='trash' />Delete
-                    </Button>
+                    {!loader &&
+                        <Button negative onClick={handleDeleteEmployee} disabled={loader}>
+                            <Icon name='trash' /> Delete
+                        </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteEmployee} disabled={loader}>
+                            <Icon loading name='spinner' /> 
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
         </div>
@@ -1295,3 +1285,5 @@ const Tools = () => {
 }
 
 export default Tools;
+
+
