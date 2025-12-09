@@ -8,59 +8,59 @@ const axios = require("axios");
 
 const customMultiSelectStyle = {
     clearIndicator: (ci) => ({
-      ...ci
-      // backgroundColor: '#383f48',
+        ...ci
+        // backgroundColor: '#383f48',
     }),
     dropdownIndicator: (ci) => ({
-      ...ci
-      // backgroundColor: "#383f48"
+        ...ci
+        // backgroundColor: "#383f48"
     }),
     indicatorsContainer: (ci) => ({
-      ...ci,
-      color: "red",
-      // backgroundColor: "#383f48",
-      position: "sticky",
-      top: 0,
-      height: "40px",
-      zIndex: "100"
+        ...ci,
+        color: "red",
+        // backgroundColor: "#383f48",
+        position: "sticky",
+        top: 0,
+        height: "40px",
+        zIndex: "100"
     }),
     control: (base) => ({
-      ...base,
-      height: 40,
-      minHeight: 40,
-      overflowX: "hidden",
-      overflowY: "auto",
-      borderRadiusTopRight: 0,
-      borderRadiusBottomRight: 0,
-      width: "100%"
-      // backgroundColor: '#383f48',
+        ...base,
+        height: 40,
+        minHeight: 40,
+        overflowX: "hidden",
+        overflowY: "auto",
+        borderRadiusTopRight: 0,
+        borderRadiusBottomRight: 0,
+        width: "100%"
+        // backgroundColor: '#383f48',
     }),
     option: (provided, state) => ({
-      ...provided,
-      color: state.isSelected ? 'white' : 'black',
-      padding: 20,
-      zIndex: 1000
+        ...provided,
+        color: state.isSelected ? 'white' : 'black',
+        padding: 20,
+        zIndex: 1000
     }),
     singleValue: base => ({
-      ...base,
-      // color: "#fff"
+        ...base,
+        // color: "#fff"
     }),
     multiValue: (styles, { data }) => {
-      return {
-        ...styles,
-        backgroundColor: "#1E8EFF",
-      };
+        return {
+            ...styles,
+            backgroundColor: "#1E8EFF",
+        };
     },
     multiValueLabel: (styles, { data }) => ({
-      ...styles,
-      color: "#00000",
+        ...styles,
+        color: "#00000",
     }),
     input: base => ({
-      ...base,
-      // color: "#fff"
+        ...base,
+        // color: "#fff"
     }),
     menu: (provided) => ({ ...provided, zIndex: 9999 }),
-  };
+};
 
 const customSelectStyle = {
     control: base => ({
@@ -248,6 +248,7 @@ const Users = () => {
             })
             .finally(function () {
                 // always executed
+                setLoader(false);
             });
     }
 
@@ -428,21 +429,26 @@ const Users = () => {
         setId(value);
     }
 
+    const isMobile = window.innerWidth <= 768;
+
     return (
-        <div>
+        <div style={{ padding: isMobile ? '10px' : '20px' }}>
             <ToastContainer />
-            <div>
-                <Button
-                    size='large'
-                    onClick={() => setAddModal(true)}
-                    style={{ float: 'left' }}
-                >
-                    <Icon name='plus' />Add User
+
+            {/* Top Controls */}
+            <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: isMobile ? 10 : 0,
+                marginBottom: 20
+            }}>
+                <Button size='large' onClick={() => setAddModal(true)}>
+                    <Icon name='plus' /> Add User
                 </Button>
 
-                <div style={{
-                    float: 'right', width: '30%', zIndex: 100,
-                }}>
+                <div style={{ width: isMobile ? '100%' : '30%' }}>
                     <Select
                         defaultValue={selectedUser}
                         options={UsersOption(usersOptionsList)}
@@ -450,61 +456,81 @@ const Users = () => {
                         placeholder='Search...'
                         isClearable
                         isMulti
-                        theme={(theme) => ({
+                        theme={theme => ({
                             ...theme,
-                            // borderRadius: 0,
-                            colors: {
-                                ...theme.colors,
-                                text: 'black',
-                                primary25: '#66c0f4',
-                                primary: '#B9B9B9',
-                            },
+                            colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' }
                         })}
                         styles={customMultiSelectStyle}
                     />
                 </div>
             </div>
 
-            <div style={{ paddingTop: 50 }}>
-                <Card.Group itemsPerRow={3} style={{ marginTop: 40, margin: '0 auto', width: '100%', backgroundColor: '#EEEEEE', overflowY: 'auto', height: '100%', maxHeight: '80vh', }}>
-                    {usersList !== null && usersList.map(x =>
-                        <Card color='blue' key={x.id}>
-                            <Card.Content>
-                                <Card.Header>{x.name}</Card.Header>
-                                <Card.Description>
-                                    Username: <strong>{x.userName}</strong>
-                                </Card.Description>
-                                <Card.Description>
-                                    Role: <strong>{x.role}</strong>
-                                </Card.Description>
-                            </Card.Content>
-                            <Card.Content extra>
-                                <div className='ui three buttons'>
-                                    <Button basic color='grey' disabled={x.userName === "superadmin" ? true : false} onClick={() => handleOpenEditModal(x)}>
-                                        Edit
-                                    </Button>
-                                    <Button basic color='grey' disabled={x.userName === "superadmin" ? true : false} onClick={() => handleOpenChangePassModal(x.id)}>
-                                        Change Password
-                                    </Button>
-                                    <Button basic color='grey' disabled={x.userName === "superadmin" ? true : false} onClick={() => onDelete(x.id)}>
-                                        Delete
-                                    </Button>
-                                </div>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </Card.Group>
-
-                {usersList === null || usersList.length === 0 && loader !== true &&
-                    <div style={{ textAlign: 'center', padding: 120 }}>
-                        <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
-                    </div>
-                }
-                {loader === true &&
+            {/* Users Cards */}
+            <div style={{ paddingTop: 20 }}>
+                {loader ? (
                     <div style={{ margin: '0 auto', textAlign: 'center' }}>
                         <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
                     </div>
-                }
+                ) : usersList && usersList.length > 0 ? (
+                    <Card.Group
+                        itemsPerRow={isMobile ? 1 : 3} // 1 for mobile, 3 for desktop
+                        stackable
+                        style={{
+                            margin: '0 auto',
+                            width: '100%',
+                            backgroundColor: '#EEEEEE',
+                            overflowY: 'auto',
+                            maxHeight: '80vh',
+                            gap: 20
+                        }}
+                    >
+                        {usersList.map(user => (
+                            <Card color='blue' key={user.id} fluid={isMobile}>
+                                <Card.Content>
+                                    <Card.Header>{user.name}</Card.Header>
+                                    <Card.Description>
+                                        Username: <strong>{user.userName}</strong>
+                                    </Card.Description>
+                                    <Card.Description>
+                                        Role: <strong>{user.role}</strong>
+                                    </Card.Description>
+                                </Card.Content>
+                                <Card.Content extra>
+                                    <div className='ui three buttons'>
+                                        <Button
+                                            basic
+                                            color='grey'
+                                            disabled={user.userName === 'superadmin'}
+                                            onClick={() => handleOpenEditModal(user)}
+                                        >
+                                            Edit
+                                        </Button>
+                                        <Button
+                                            basic
+                                            color='grey'
+                                            disabled={user.userName === 'superadmin'}
+                                            onClick={() => handleOpenChangePassModal(user.id)}
+                                        >
+                                            Change Password
+                                        </Button>
+                                        <Button
+                                            basic
+                                            color='grey'
+                                            disabled={user.userName === 'superadmin'}
+                                            onClick={() => onDelete(user.id)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </Card.Content>
+                            </Card>
+                        ))}
+                    </Card.Group>
+                ) : (
+                    <div style={{ textAlign: 'center', padding: 120 }}>
+                        <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
+                    </div>
+                )}
             </div>
 
             <Modal
@@ -582,9 +608,17 @@ const Users = () => {
                     <Button onClick={handlCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddUser}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddUser} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddUser} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -641,9 +675,17 @@ const Users = () => {
                     <Button onClick={handlCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditUser}>
-                        <Icon name='save' />Edit
-                    </Button>
+
+                    {!loader &&
+                        <Button onClick={handleEditUser} disabled={loader}>
+                            <Icon name='save' /> Edit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditUser} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -660,9 +702,16 @@ const Users = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteUser}>
-                        <Icon name='trash' />Delete
-                    </Button>
+                    {!loader &&
+                        <Button negative onClick={handleDeleteUser} disabled={loader}>
+                            <Icon name='trash' /> Delete
+                        </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteUser} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -701,9 +750,16 @@ const Users = () => {
                     <Button onClick={handlCloseChangePassModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleChangePassword}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleChangePassword} disabled={loader}>
+                            <Icon name='save' />Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleChangePassword} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
         </div>
