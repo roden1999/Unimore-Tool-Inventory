@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Button, Card, Icon, Table, TableCell, Pagination, List, Grid, Menu, Segment, Label, Input } from 'semantic-ui-react'
+import { Modal, Form, Button, Card, Icon, Table, TableCell, Pagination, List, Grid, Menu, Segment, Label, Input, Loader } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
@@ -101,6 +101,7 @@ const ConsumableForms = () => {
     const [projectOptions, setProjectOptions] = useState(null);
     const [selectedProject, setSelectedProject] = useState([]);
     const [loader, setLoader] = useState(false);
+    const [addloader, setAddLoader] = useState(false);
     const [id, setId] = useState(-1);
     const [projectName, setProjectName] = useState("");
     const [description, setDescription] = useState("");
@@ -139,6 +140,7 @@ const ConsumableForms = () => {
     const showPreviousAndNextNav = true;
 
     useEffect(() => {
+        setLoader(true);
         var data = {
             selectedProject: !selectedProject ? [] : selectedProject,
             fromDate: fromDate,
@@ -172,8 +174,9 @@ const ConsumableForms = () => {
             })
             .finally(function () {
                 // always executed
+                setLoader(false);
             });
-    }, [selectedProject, fromDate, toDate, page, loader]);
+    }, [selectedProject, fromDate, toDate, page]);
 
     const projectsList = projectData
         ? projectData.map((x) => ({
@@ -363,7 +366,7 @@ const ConsumableForms = () => {
             status: status ? status.value : "",
         }
 
-        setLoader(true);
+        setAddLoader(true);
 
         axios
             .post(url, data, {
@@ -377,7 +380,7 @@ const ConsumableForms = () => {
                     position: "top-center"
                 });
                 setAddModal(false);
-                setLoader(false);
+                setAddLoader(false);
                 setId(-1);
                 setProjectName("");
                 setDescription("");
@@ -389,7 +392,7 @@ const ConsumableForms = () => {
                 toast.error(JSON.stringify(error.response.data), {
                     position: "top-center"
                 });
-                setLoader(false);
+                setAddLoader(false);
             })
             .finally(function () {
                 // always executed
@@ -863,7 +866,7 @@ const ConsumableForms = () => {
                             { text: y.Quantity, fontSize: 7, alignment: "center", },
                             { text: y.EmployeeName, fontSize: 7, alignment: "left", },
                             { text: y.IssuedBy, fontSize: 7, alignment: "left", },
-                            { text: moment(y.DateIssued).format("MM/DD/yyyy"), fontSize: 7, alignment: "center", color: y.Status === "Returned" ? "green" : "black"},
+                            { text: moment(y.DateIssued).format("MM/DD/yyyy"), fontSize: 7, alignment: "center", color: y.Status === "Returned" ? "green" : "black" },
                             { text: y.Remarks, fontSize: 7, alignment: "left", },
                         ],
                     ],
@@ -899,67 +902,57 @@ const ConsumableForms = () => {
         pdfMake.createPdf(document).print({}, window.frames['printPdf']);
     }
 
+    const isMobile = window.innerWidth <= 768;
+
     return (
         <div>
             <ToastContainer />
-            <Button size="large" style={{ float: 'left' }} onClick={() => setAddModal(true)}><Icon name='plus' />Add Form</Button>
 
-            <div style={{
-                float: 'right', width: '30%', zIndex: 100,
-            }}>
-                <Select
-                    defaultValue={selectedProject}
-                    options={ProjectsOption(projectsOptionsList)}
-                    onChange={e => setSelectedProject(e)}
-                    placeholder='Search...'
-                    isClearable
-                    isMulti
-                    theme={(theme) => ({
-                        ...theme,
-                        // borderRadius: 0,
-                        colors: {
-                            ...theme.colors,
-                            text: 'black',
-                            primary25: '#66c0f4',
-                            primary: '#B9B9B9',
-                        },
-                    })}
-                    styles={customMultiSelectStyle}
-                />
+            {/* Top controls */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', marginBottom: 10 }}>
+                <Button size="large" onClick={() => setAddModal(true)}>
+                    <Icon name='plus' /> Add Form
+                </Button>
+
+                <div style={{ width: isMobile ? '100%' : '30%', marginTop: isMobile ? 10 : 0 }}>
+                    <Select
+                        defaultValue={selectedProject}
+                        options={ProjectsOption(projectsOptionsList)}
+                        onChange={e => setSelectedProject(e)}
+                        placeholder='Search...'
+                        isClearable
+                        isMulti
+                        theme={theme => ({
+                            ...theme,
+                            colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' }
+                        })}
+                        styles={customMultiSelectStyle}
+                    />
+                </div>
             </div>
 
-            <Grid style={{ width: '100%', }}>
-                <Grid.Column width={3} style={{ height: '100%', }}>
-                    <Menu fluid vertical size='massive' color="blue" style={{ height: '100%', minHeight: '74vh', maxHeight: '74vh' }}>
-
-                        <Menu.Item
-                            color="blue"
-                            style={{ backgroundColor: "#B9B9B9" }}
-                        >
-                            <h4 style={{ textAlign: 'center' }}>PROJECT</h4>
+            <Grid stackable>
+                {/* Sidebar */}
+                <Grid.Column width={3}>
+                    <Menu fluid vertical size='massive' color="blue" style={{ minHeight: '74vh', maxHeight: '74vh' }}>
+                        <Menu.Item style={{ backgroundColor: "#B9B9B9", textAlign: 'center' }}>
+                            <h4>PROJECT</h4>
                         </Menu.Item>
 
-                        <div style={{ overflowY: 'scroll', height: '100%', minHeight: '60vh', maxHeight: '60vh' }}>
-                            {projectsList !== null && loader !== true && projectsList.map(x =>
-                                <Menu.Item
-                                    active={x.id === projId}
-                                    onClick={() => setProjId(x.id)}
-                                    color="blue"
-                                >
+                        <div style={{ overflowY: 'scroll', maxHeight: '60vh' }}>
+                            {loader && <Loader active inline="centered" style={{ marginTop: "2rem" }} />}
+
+                            {!loader && projectsList && projectsList.map(x => (
+                                <Menu.Item key={x.id} active={x.id === projId} onClick={() => setProjId(x.id)}>
                                     <Grid>
                                         <Grid.Column width={13}>
-                                            <List size='mini' animated>
+                                            <List size='mini'>
                                                 <List.Item>
                                                     <List.Content>
                                                         <List.Header>{x.projectName}</List.Header>
                                                         <List.Description>{moment(x.date).format("MMMM DD, yyyy")}</List.Description>
                                                         <List.Description>{x.description}</List.Description>
-                                                        <List.Description>
-                                                            {x.status !== "" ?
-                                                                <Label color={x.status !== "On Going" ? "green" : "blue"}>{x.status}</Label> :
-                                                                ""
-                                                            }
-                                                        </List.Description>
+                                                        {x.status && <Label color={x.status !== "On Going" ? "green" : "blue"}>{x.status}</Label>}
                                                     </List.Content>
                                                 </List.Item>
                                             </List>
@@ -967,27 +960,22 @@ const ConsumableForms = () => {
                                         <Grid.Column width={0}>
                                             <div style={{ float: "right", marginLeft: 30 }}>
                                                 <Button circular size="mini" icon='edit' onClick={() => handleOpenEditModal(x)} /><br />
-                                                <Button circular size="mini" icon='trash' onClick={() => handleOpenDeletePopup(x.id)} style={{ marginTop: 5, zIndex: 1000 }} />
+                                                <Button circular size="mini" icon='trash' onClick={() => handleOpenDeletePopup(x.id)} style={{ marginTop: 5 }} />
                                             </div>
                                         </Grid.Column>
                                     </Grid>
                                 </Menu.Item>
-                            )}
+                            ))}
 
-                            {projectsList === null || projectsList.length === 0 && loader !== true &&
+                            {!loader && (!projectsList || projectsList.length === 0) &&
                                 <div style={{ textAlign: 'center', marginTop: 50 }}>
                                     <h4 style={{ color: '#C4C4C4' }}>No Project found!</h4>
                                 </div>
                             }
-
-                            {loader === true &&
-                                <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                                    <Icon loading name='spinner' size='medium' style={{ color: '#C4C4C4', marginTop: 50 }} />
-                                </div>
-                            }
                         </div>
-                        <Menu.Item>
-                            {Object.keys(selectedProject).length === 0 &&
+
+                        {!selectedProject.length && !loader &&
+                            <Menu.Item>
                                 <Pagination
                                     activePage={page}
                                     boundaryRange={boundaryRange}
@@ -995,7 +983,6 @@ const ConsumableForms = () => {
                                     size='mini'
                                     siblingRange={siblingRange}
                                     totalPages={totalForm / 20}
-                                    // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
                                     ellipsisItem={showEllipsis ? undefined : null}
                                     firstItem={showFirstAndLastNav ? undefined : null}
                                     lastItem={showFirstAndLastNav ? undefined : null}
@@ -1003,195 +990,95 @@ const ConsumableForms = () => {
                                     nextItem={showPreviousAndNextNav ? undefined : null}
                                     style={{ zIndex: 1 }}
                                 />
-                            }
-                        </Menu.Item>
+                            </Menu.Item>
+                        }
                     </Menu>
                 </Grid.Column>
 
-                <Grid.Column stretched width={13}>
-                    <Segment style={{ marginTop: 20, height: '100%', minHeight: '72vh', maxHeight: '72vh' }}>
-                        {projId !== "" && projectsList !== null && loader !== true && projectsList.map(x =>
-                            <div color='blue' key={x.id}>
-                                {x.id === projId &&
-                                    <div>
-                                        <Button size='medium' style={{ marginBottom: 10 }} onClick={() => exportToPDF(x)}><Icon name='file pdf' />Export to PDF</Button>
-                                        <Button size='medium' style={{ float: 'right', marginBottom: 10 }} onClick={() => handleOpenItemModal(x.id)}><Icon name='plus' />Add Item</Button>
-                                        <Input type="date" label="To Date" style={{ float: 'right', marginRight: 10 }} value={toDate} onChange={e => setToDate(e.target.value)} />
-                                        <Input type="date" label="From Date" style={{ float: 'right', marginRight: 10 }} value={fromDate} onChange={e => setFromDate(e.target.value)} />
-
-                                        <div style={{ overflowY: 'scroll', width: "100%", height: '100%', maxHeight: '60vh' }}>
-                                            <Table celled color="blue">
-                                                <Table.Header style={{ position: "sticky", top: 0 }}>
-                                                    <Table.Row>
-                                                        <Table.HeaderCell rowSpan='2'>Item</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Quantity</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Issued By</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Date Issued</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Remarks</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
-                                                    </Table.Row>
-                                                </Table.Header>
-                                                {x.data.length !== 0 && x.data.map(y =>
-                                                    <Table.Body>
-                                                        <Table.Row>
-                                                            <TableCell>{y.Consumable}</TableCell>
-                                                            <TableCell style={{ textAlign: 'center' }}>
-                                                                <Button icon='minus' onClick={() => handleOpenSubtractQtyModal(y._id)} />
-                                                                <Button basic>
-                                                                    {y.Quantity}
-                                                                </Button>
-                                                                <Button icon="plus" onClick={() => handleOpenAddQtyModal(y._id)} />
-                                                            </TableCell>
-                                                            <TableCell>{y.EmployeeName}</TableCell>
-                                                            <TableCell>{y.IssuedBy}</TableCell>
-                                                            <TableCell>{moment(y.DateIssued).format("MMM DD, yyyy")}</TableCell>
-                                                            <TableCell>{y.Remarks}</TableCell>
-                                                            <TableCell style={{ textAlign: 'center' }}>
-                                                                <div className='ui one buttons'>
-                                                                    {
-                                                                        <Button.Group>
-                                                                            <Button basic color='grey' onClick={() => handleEditItem(y)}>
-                                                                                <Icon name='edit' />Edit
-                                                                            </Button>
-                                                                            <Button basic color='grey' onClick={() => handleDeleteItemModal(y._id)}>
-                                                                                <Icon name='close' />Delete
-                                                                            </Button>
-                                                                        </Button.Group>
-                                                                    }
-                                                                </div>
-                                                            </TableCell>
-                                                        </Table.Row>
-                                                    </Table.Body>
-                                                )}
-                                            </Table>
-                                        </div>
-                                    </div>
-                                }
-
-                                {/* <div className='ui two buttons'>
-                                    <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                        Edit
-                                    </Button>
-                                    <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                        Delete
-                                    </Button>
-                                </div> */}
-                            </div>
-                        )}
-                        {projId === "" && loader !== true &&
-                            <h1 style={{ textAlign: 'center', marginTop: '20%', color: '#C4C4C4' }}>Select a Project to View Borrowed Consumable.</h1>
+                {/* Main Content */}
+                <Grid.Column stretched width={isMobile ? 16 : 13}>
+                    <Segment style={{ minHeight: '72vh' }}>
+                        {loader &&
+                            <Loader active inline="centered" size="large" content="Loading..." />
                         }
 
-                        {loader === true &&
-                            <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                                <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
+                        {!loader && projId && projectsList && projectsList.map(x => x.id === projId && (
+                            <div key={x.id}>
+                                {isMobile ? (
+                                    // MOBILE: display as cards
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                        {x.data.map(y => (
+                                            <Card key={y._id} fluid>
+                                                <Card.Content>
+                                                    <Card.Header>{y.Consumable}</Card.Header>
+                                                    <Card.Meta>Borrower: {y.EmployeeName}</Card.Meta>
+                                                    <Card.Meta>Issued By: {y.IssuedBy}</Card.Meta>
+                                                    <Card.Description>
+                                                        <p>Date Issued: {moment(y.DateIssued).format("MMM DD, yyyy")}</p>
+                                                        <p>Quantity: {y.Quantity}</p>
+                                                        <p>Remarks: {y.Remarks}</p>
+                                                    </Card.Description>
+                                                </Card.Content>
+                                                <Card.Content extra>
+                                                    <div className='ui two buttons'>
+                                                        <Button basic color='grey' onClick={() => handleEditItem(y)}><Icon name='edit' />Edit</Button>
+                                                        <Button basic color='grey' onClick={() => handleDeleteItemModal(y._id)}><Icon name='close' />Delete</Button>
+                                                    </div>
+                                                </Card.Content>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    // DESKTOP: display as table
+                                    <div style={{ overflowX: 'auto', maxHeight: '60vh' }}>
+                                        <Table celled color="blue" compact>
+                                            <Table.Header style={{ position: 'sticky', top: 0, background: 'white' }}>
+                                                <Table.Row>
+                                                    <Table.HeaderCell>Item</Table.HeaderCell>
+                                                    <Table.HeaderCell style={{ textAlign: 'center' }}>Quantity</Table.HeaderCell>
+                                                    <Table.HeaderCell>Borrower</Table.HeaderCell>
+                                                    <Table.HeaderCell>Issued By</Table.HeaderCell>
+                                                    <Table.HeaderCell>Date Issued</Table.HeaderCell>
+                                                    <Table.HeaderCell>Remarks</Table.HeaderCell>
+                                                    <Table.HeaderCell style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
+                                                </Table.Row>
+                                            </Table.Header>
+                                            <Table.Body>
+                                                {x.data.map(y => (
+                                                    <Table.Row key={y._id}>
+                                                        <Table.Cell>{y.Consumable}</Table.Cell>
+                                                        <Table.Cell style={{ textAlign: 'center' }}>
+                                                            <Button icon='minus' onClick={() => handleOpenSubtractQtyModal(y._id)} />
+                                                            <Button basic>{y.Quantity}</Button>
+                                                            <Button icon='plus' onClick={() => handleOpenAddQtyModal(y._id)} />
+                                                        </Table.Cell>
+                                                        <Table.Cell>{y.EmployeeName}</Table.Cell>
+                                                        <Table.Cell>{y.IssuedBy}</Table.Cell>
+                                                        <Table.Cell>{moment(y.DateIssued).format("MMM DD, yyyy")}</Table.Cell>
+                                                        <Table.Cell>{y.Remarks}</Table.Cell>
+                                                        <Table.Cell style={{ textAlign: 'center' }}>
+                                                            <Button.Group>
+                                                                <Button basic color='grey' onClick={() => handleEditItem(y)}><Icon name='edit' />Edit</Button>
+                                                                <Button basic color='grey' onClick={() => handleDeleteItemModal(y._id)}><Icon name='close' />Delete</Button>
+                                                            </Button.Group>
+                                                        </Table.Cell>
+                                                    </Table.Row>
+                                                ))}
+                                            </Table.Body>
+                                        </Table>
+                                    </div>
+                                )}
                             </div>
+                        ))}
+
+                        {!loader && !projId &&
+                            <h1 style={{ textAlign: 'center', marginTop: '20%', color: '#C4C4C4' }}>
+                                Select a Project to View Borrowed Consumable.
+                            </h1>
                         }
                     </Segment>
                 </Grid.Column>
             </Grid>
-
-            {/* <div style={{ paddingTop: 50, }}>
-                <Card.Group itemsPerRow={1} style={{ marginTop: 40, margin: '0 auto', width: '100%', backgroundColor: '#EEEEEE', overflowY: 'scroll', height: '100%', maxHeight: '70vh', }}>
-                    {projectsList !== null && loader !== true && projectsList.map(x =>
-                        <Card color='blue' key={x.id}>
-                            <Card.Content>
-                                <Button size='medium' style={{ float: 'right' }} onClick={() => handleOpenItemModal(x.id)}><Icon name='plus' />Add Item</Button>
-                                <Card.Header>Project Name: {x.projectName}</Card.Header>
-                                <Card.Description>Date: {moment(x.date).format("MMMM DD, yyyy")}</Card.Description>
-                                <Card.Meta>Description: {x.description}</Card.Meta>
-
-                                <Card.Content>
-                                    <Table celled>
-                                        <Table.Header>
-                                            <Table.Row>
-                                                <Table.HeaderCell rowSpan='2'>Item</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Quantity</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Issued By</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Date Issued</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
-                                            </Table.Row>
-                                        </Table.Header>
-                                        {x.data.length !== 0 && x.data.map(y =>
-                                            <Table.Body>
-                                                <Table.Row>
-                                                    <TableCell>{y.Consumable}</TableCell>
-                                                    <TableCell style={{ textAlign: 'center' }}>
-                                                        <Button icon='minus' onClick={() => handleOpenSubtractQtyModal(y._id)} />
-                                                        <Button basic>
-                                                            {y.Quantity}
-                                                        </Button>
-                                                        <Button icon="plus" onClick={() => handleOpenAddQtyModal(y._id)} />
-                                                    </TableCell>
-                                                    <TableCell>{y.EmployeeName}</TableCell>
-                                                    <TableCell>{y.IssuedBy}</TableCell>
-                                                    <TableCell>{moment(y.DateIssued).format("MMM DD, yyyy")}</TableCell>
-                                                    <TableCell style={{ textAlign: 'center' }}>
-                                                        <div className='ui one buttons'>
-                                                            {
-                                                                <Button.Group>
-                                                                    <Button basic color='grey' onClick={() => handleEditItem(y)}>
-                                                                        <Icon name='edit' />Edit
-                                                                    </Button>
-                                                                    <Button basic color='grey' onClick={() => handleDeleteItemModal(y._id)}>
-                                                                        <Icon name='close' />Delete
-                                                                    </Button>
-                                                                </Button.Group>
-                                                            }
-                                                        </div>
-                                                    </TableCell>
-                                                </Table.Row>
-                                            </Table.Body>
-                                        )}
-                                    </Table>
-                                </Card.Content>
-
-                                <Card.Content extra style={{ marginTop: 10 }}>
-                                    <div className='ui two buttons'>
-                                        <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                            Edit
-                                        </Button>
-                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </Card.Content>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </Card.Group>
-
-                {projectsList === null || projectsList.length === 0 && loader !== true &&
-                    <div style={{ textAlign: 'center', padding: 120 }}>
-                        <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
-                    </div>
-                }
-                {loader === true &&
-                    <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                        <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
-                    </div>
-                }
-
-                {Object.keys(selectedProject).length === 0 &&
-                    <Pagination
-                        activePage={page}
-                        boundaryRange={boundaryRange}
-                        onPageChange={(e, { activePage }) => setPage(activePage)}
-                        size='mini'
-                        siblingRange={siblingRange}
-                        totalPages={totalForm / 5}
-                        // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
-                        ellipsisItem={showEllipsis ? undefined : null}
-                        firstItem={showFirstAndLastNav ? undefined : null}
-                        lastItem={showFirstAndLastNav ? undefined : null}
-                        prevItem={showPreviousAndNextNav ? undefined : null}
-                        nextItem={showPreviousAndNextNav ? undefined : null}
-                        style={{ float: 'right', marginTop: 20 }}
-                    />
-                }
-            </div> */}
 
             <Modal
                 size="mini"
@@ -1261,9 +1148,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddProject}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!addloader &&
+                        <Button onClick={handleAddProject} disabled={addloader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {addloader &&
+                        <Button onClick={handleAddProject} disabled={addloader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1372,9 +1266,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseBorrowModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddItem}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddItem} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddItem} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1446,9 +1347,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditProjects}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleEditProjects} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditProjects} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1512,9 +1420,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCancelEditItem}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmitEditItem}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleSubmitEditItem} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleSubmitEditItem} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1553,9 +1468,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseDeleteItemModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteConsumable}>
-                        <Icon name='trash' />Delete
-                    </Button>
+                    {!loader &&
+                        <Button negative onClick={handleDeleteConsumable} disabled={loader}>
+                            <Icon name='trash' /> Delete
+                        </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteConsumable} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1572,9 +1494,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteItem}>
-                        <Icon name='trash' />Delete
-                    </Button>
+                    {!loader &&
+                        <Button negative onClick={handleDeleteItem} disabled={loader}>
+                            <Icon name='trash' /> Delete
+                        </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteItem} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1606,9 +1535,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseAddQtyModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button onClick={handleAddQuantity}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddQuantity} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddQuantity} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1640,9 +1576,16 @@ const ConsumableForms = () => {
                     <Button onClick={handleCloseSubtractQtyModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button onClick={handleSubtractQuantity}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleSubtractQuantity} disabled={loader}>
+                            <Icon name='save' />Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleSubtractQuantity} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
         </div>

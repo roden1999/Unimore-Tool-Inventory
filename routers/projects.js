@@ -83,7 +83,7 @@ router.post("/list", verify, async (request, response) => {
 
                 const records = await recordModel.find({
                     ProjectId: projects[i]._id,
-                    DateBorrowed: { $gte: new Date(fromDate).setHours(05, 00, 00), $lte: new Date(toDate).setHours(23, 59, 59) },
+                    DateBorrowed: { $gte: new Date(fromDate).setHours(5, 0, 0), $lte: new Date(toDate).setHours(23, 59, 59) },
                 }).sort('-DateBorrowed');
                 for (const i in records) {
                     var tool = await toolModel.find({ _id: records[i].ToolId });
@@ -128,7 +128,7 @@ router.post("/list", verify, async (request, response) => {
 
                 const records = await recordModel.find({
                     ProjectId: projects[i]._id,
-                    DateBorrowed: { $gte: new Date(fromDate).setHours(05, 00, 00), $lte: new Date(toDate).setHours(23, 59, 59) },
+                    DateBorrowed: { $gte: new Date(fromDate).setHours(5, 0, 0), $lte: new Date(toDate).setHours(23, 59, 59) },
                 }).sort('-DateBorrowed');
                 for (const i in records) {
                     var tool = await toolModel.find({ _id: records[i].ToolId });
