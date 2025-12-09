@@ -1,180 +1,189 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button, Card, Form, Icon, Popup, Image } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import UserContext from './context/userContext';
 const axios = require('axios');
 
-const Login = (props) => {
+
+const Login = () => {
+    const [coverEyes, setCoverEyes] = useState(false);
     const { setUserData } = useContext(UserContext);
-    const [name, setName] = useState("");
-    const [resgisterUserName, setRegisterUserName] = useState("");
-    const [registerPassword, setRegisterPassword] = useState("");
     const [userName, setUserName] = useState("");
     const [password, setPassword] = useState("");
-    const [passwordCheck, setPasswordCheck] = useState("");
     const [errSignInMsg, setErrSignInMsg] = useState("");
-    const [errRegisterMsg, setErrRegisterMsg] = useState("");
     const [signInLoader, setSignInLoader] = useState(false);
-    const [registerLoader, setRegisterLoader] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     const onLogin = async () => {
         setSignInLoader(true);
         const url = window.apihost + "login";
-        const loginUser = {
-            "userName": userName,
-            "password": password
-        }
-        await axios.post(url, loginUser)
-            .then(function (response) {
-                // handle success
+
+        await axios.post(url, { userName, password })
+            .then(response => {
                 sessionStorage.setItem("auth-token", response.data.token);
                 sessionStorage.setItem("userData", JSON.stringify(response.data));
                 sessionStorage.setItem("user", JSON.stringify(response.data.user));
                 setUserData(response.data);
-                setSignInLoader(false);
             })
             .catch(err => {
-                const errors = {
-                    msg: err.response.data.message,
-                    status: err.response.status
-                }
                 setErrSignInMsg(err.response.data.message);
-                setSignInLoader(false);
-            });
-    }
-
-    const handleSignInUserName = (e) => {
-        setUserName(e.target.value);
-        setErrSignInMsg("");
-    }
-
-    const handleSignInPassword = (e) => {
-        setPassword(e.target.value);
-        setErrSignInMsg("");
-    }
-
-    const onRegister = () => {
-        setRegisterLoader(true);
-        const url = window.apihost + "registration";
-        const newUser = {
-            "name": name,
-            "userName": resgisterUserName,
-            "password": registerPassword,
-            // "passwordCheck": passwordCheck
-        };
-        axios.post(url, newUser)
-            .then(function (response) {
-                // handle success
-                alert("Successfully Registered " + response.data);
-                setRegisterLoader(false);
             })
-            .catch(err => {
-                const errors = {
-                    msg: err.response.data,
-                    status: err.response.status
-                }
-                setErrRegisterMsg(err.response.data);
-                setRegisterLoader(false);
-            });
-    }
-
-    const handleName = (e) => {
-        setName(e.target.value);
-        setErrRegisterMsg("");
-    }
-
-    const handleRegisterUserName = (e) => {
-        setRegisterUserName(e.target.value);
-        setErrRegisterMsg("");
-    }
-
-    const handleRegisterPassword = (e) => {
-        setRegisterPassword(e.target.value);
-        setErrRegisterMsg("");
-    }
-
-    const handlePasswordChecker = (e) => {
-        setPasswordCheck(e.target.value);
-        setErrRegisterMsg("");
-    }
-
-    const handleClickShowPassword = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const handleMouseDownPassword = (event) => {
-        event.preventDefault();
+            .finally(() => setSignInLoader(false));
     };
 
     return (
         <div style={{
-            height: '100vh',
-            width: '100%',
-            fontFamily: `'Montserrat', sans-serif`,
             display: 'flex',
-            flexDirection: 'column',
+            height: '100vh',
             justifyContent: 'center',
             alignItems: 'center',
-            alignContent: 'center',
-            background: '#F3F1F1',
+            background: 'linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%)',
+            fontFamily: 'Arial, sans-serif',
         }}>
-            <Card link style={{ margin: '0 auto', width: '30%' }}>
-                {/* <h1 style={{ textAlign: 'center', marginTop: 10, marginBottom: 10 }}>Logo</h1> */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
-                    <Image src="unimore-logo-landscape.png" size='large' style={{ backgroundColor: 'white' }} />
+            <div style={{
+                backgroundColor: '#fff',
+                padding: '40px',
+                borderRadius: '15px',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                maxWidth: '400px',
+                width: '100%',
+            }}>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    marginTop: 10,
+                }}>
+                    <Image
+                        src="unimore-logo-landscape.png"
+                        style={{
+                            width: '80%',
+                            maxWidth: '250px',
+                            height: 'auto',
+                            backgroundColor: 'white',
+                        }}
+                    />
                 </div>
-                <h6 style={{ textAlign: 'center', marginTop: 10, marginBottom: 5, color: 'red' }}>{errSignInMsg}</h6>
-                <div style={{ paddingLeft: 30, paddingRight: 30, }}>
-                    <Form>
-                        <Form.Input
-                            fluid
-                            label='Username'
-                            placeholder='username'
-                            id='form-input-first-name'
-                            size='large '
-                            value={userName}
-                            onChange={handleSignInUserName}
-                        />
-                        <Form.Input
-                            fluid
-                            label='Password'
-                            placeholder='password'
-                            type='password'
-                            size='large'
-                            value={password}
-                            onChange={handleSignInPassword}
-                        />
+                <p style={{
+                    marginBottom: '30px',
+                    textAlign: 'center',
+                    color: '#555',
+                    fontSize: '14px',
+                }}>Please login to your account</p>
+                <form style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    {/* Email Input */}
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        style={{
+                            padding: '12px 15px',
+                            borderRadius: '8px',
+                            border: '1px solid #ccc',
+                            fontSize: '14px',
+                            outline: 'none',
+                            transition: 'border-color 0.3s',
+                        }}
+                        value={userName}
+                        onChange={e => { setUserName(e.target.value); setErrSignInMsg(""); }}
+                        onFocus={(e) => (e.target.style.borderColor = '#6C63FF')}
+                        onBlur={(e) => (e.target.style.borderColor = '#ccc')}
+                    />
+                    {/* Password Input */}
+                    <input
+                        type="password"
+                        placeholder="Password"
+                        style={{
+                            padding: '12px 15px',
+                            borderRadius: '8px',
+                            border: '1px solid #ccc',
+                            fontSize: '14px',
+                            outline: 'none',
+                            transition: 'border-color 0.3s',
+                        }}
+                        value={password}
+                        onChange={e => { setPassword(e.target.value); setErrSignInMsg(""); }}
+                        onFocus={(e) => (e.target.style.borderColor = '#6C63FF')}
+                        onBlur={(e) => (e.target.style.borderColor = '#ccc')}
+                    />
 
-                        <div>
-                            <div style={{ margin: '0 auto', marginTop: 10, display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                                <Button
-                                    size='large'
-                                    variant='contained'
-                                    style={{ backgroundColor: '#1e88e5', color: '#fff', borderRadius: 20, width: '130px', height: '50px' }}
-                                    disabled={signInLoader}
-                                    onClick={onLogin}
-                                    type='submit'
-                                >
-                                    {signInLoader === false ? "Sign In" : <Icon loading name='spinner' />}
-                                </Button>
-                            </div>
+                    {errSignInMsg !== "" &&
+                        <h6 style={{
+                            textAlign: 'center',
+                            marginTop: 2,
+                            marginBottom: 2,
+                            color: 'red'
+                        }}>{errSignInMsg}</h6>
+                    }
 
-                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 30 }}>
-                                {/* <a href='#'><b>Forgot Password?</b></a> */}
-                                <Popup
-                                    content='Contact admin to change your password.'
-                                    on='click'
-                                    pinned
-                                    trigger={<a href='#'><b>Forgot Password?</b></a>}
-                                />
-                            </div>
-                        </div>
-                    </Form>
-                </div>
-            </Card>
-        </div >
+                    {/* Submit Button */}
+                    <button
+                        type="submit"
+                        style={{
+                            padding: '14px',
+                            background: 'linear-gradient(135deg, #6C63FF, #3D5AFE)',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontSize: '16px',
+                            cursor: signInLoader ? 'not-allowed' : 'pointer',
+                            boxShadow: '0 4px 15px rgba(108, 99, 255, 0.2)',
+                            transition: 'background 0.3s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                        disabled={signInLoader}
+                        onClick={onLogin}
+                        onMouseOver={(e) => {
+                            if (!signInLoader) {
+                                e.target.style.background = 'linear-gradient(135deg, #5A4EE3, #2D44D5)';
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            if (!signInLoader) {
+                                e.target.style.background = 'linear-gradient(135deg, #6C63FF, #3D5AFE)';
+                            }
+                        }}
+                    >
+                        {signInLoader ? (
+                            <div
+                                style={{
+                                    border: '4px solid #f3f3f3',
+                                    borderRadius: '50%',
+                                    borderTop: '4px solid #fff',
+                                    width: '20px',
+                                    height: '20px',
+                                    animation: 'spin 1s linear infinite',
+                                }}
+                            />
+                        ) : (
+                            'Log In'
+                        )}
+
+                        {/* Spinner animation style */}
+                        <style>
+                            {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+                        </style>
+                    </button>
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginBottom: 20
+                    }}>
+                        <Popup
+                            content='Contact admin to change your password.'
+                            on='click'
+                            pinned
+                            trigger={<a href="#"><b>Forgot Password?</b></a>}
+                        />
+                    </div>
+                </form>
+            </div>
+        </div>
     );
-}
+};
 
 export default Login;
