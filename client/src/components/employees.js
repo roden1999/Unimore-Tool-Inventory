@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Pagination, Form, Button, Card, Icon, Table, TableCell, Image, Modal, } from 'semantic-ui-react'
+import { Pagination, Form, Button, Card, Icon, Table, TableCell, Image, Modal, Loader } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
@@ -113,6 +113,7 @@ const Employees = () => {
     const showPreviousAndNextNav = true;
 
     useEffect(() => {
+        setLoader(true);
         var data = {
             selectedEmployee: selectedEmployee,
             page: page
@@ -141,8 +142,9 @@ const Employees = () => {
             })
             .finally(function () {
                 // always executed
+                setLoader(false);
             });
-    }, [selectedEmployee, loader, page]);
+    }, [selectedEmployee, page]);
 
     const employeesList = employeesData
         ? employeesData.map((x) => ({
@@ -440,16 +442,26 @@ const Employees = () => {
         }
     }
 
+    const isMobile = window.innerWidth <= 768;
 
     return (
-        <div>
-            <div>
-                <ToastContainer />
-                <Button size='large' style={{ float: 'left' }} onClick={() => setAddModal(true)}><Icon name='plus' />Add Employee</Button>
+        <div style={{ padding: isMobile ? '10px' : '20px' }}>
+            <ToastContainer />
 
-                <div style={{
-                    float: 'right', width: '30%', zIndex: 100,
-                }}>
+            {/* Top Controls */}
+            <div style={{
+                display: 'flex',
+                flexDirection: isMobile ? 'column' : 'row',
+                justifyContent: 'space-between',
+                alignItems: isMobile ? 'stretch' : 'center',
+                gap: isMobile ? 10 : 0,
+                marginBottom: 20
+            }}>
+                <Button size='large' onClick={() => setAddModal(true)}>
+                    <Icon name='plus' /> Add Employee
+                </Button>
+
+                <div style={{ width: isMobile ? '100%' : '30%' }}>
                     <Select
                         defaultValue={selectedEmployee}
                         options={EmployeesOption(employeeOptionsList)}
@@ -457,101 +469,104 @@ const Employees = () => {
                         placeholder='Search...'
                         isClearable
                         isMulti
-                        theme={(theme) => ({
+                        theme={theme => ({
                             ...theme,
-                            // borderRadius: 0,
-                            colors: {
-                                ...theme.colors,
-                                text: 'black',
-                                primary25: '#66c0f4',
-                                primary: '#B9B9B9',
-                            },
+                            colors: { ...theme.colors, text: 'black', primary25: '#66c0f4', primary: '#B9B9B9' }
                         })}
                         styles={customMultiSelectStyle}
                     />
                 </div>
             </div>
 
-            <div style={{ paddingTop: 50, }}>
-                <Card.Group itemsPerRow={2} style={{ marginTop: 40, margin: '0 auto', width: '100%', backgroundColor: '#EEEEEE', overflowY: 'scroll', height: '100%', maxHeight: '80vh', }}>
-                    {employeesList !== null && loader !== true && employeesList.map(x =>
-                        <Card color='blue' key={x.id}>
-                            <Card.Content>
-                                <Image
-                                    floated='right'
-                                    size='mini'
-                                    style={{ width: 55, height: 55 }}
-                                    src={x.image !== "" ? window.apihost + "images/" + x.image : window.apihost + "images/default.jpg"}
-                                />
-                                <Card.Header>{x.firstName + " " + x.middleName + " " + x.lastName}</Card.Header>
-                                <Card.Meta>{x.employeeNo}</Card.Meta>
-                                <Card.Description>
-                                    Total Borrowed Tools: <strong>{x.totalBorrowed}</strong>
-                                </Card.Description>
-                            </Card.Content>
+            {/* Employee Cards */}
+            <div style={{ paddingTop: 20 }}>
+                {loader ? (
+                    <Loader active inline="centered" size="large" content="Loading..." />
+                ) : employeesList && employeesList.length > 0 ? (
+                    <Card.Group
+                        itemsPerRow={isMobile ? 1 : 4}  // 1 for mobile, 4 for desktop
+                        style={{
+                            margin: '0 auto',
+                            width: '100%',
+                            backgroundColor: '#EEEEEE',
+                            overflowY: 'auto',
+                            maxHeight: '80vh',
+                            gap: isMobile ? 10 : 20
+                        }}
+                    >
+                        {employeesList.map(emp => (
+                            <Card color='blue' key={emp.id}>
+                                <Card.Content>
+                                    <Image
+                                        floated='right'
+                                        size='mini'
+                                        style={{ width: 55, height: 55 }}
+                                        src={emp.image ? window.apihost + "images/" + emp.image : window.apihost + "images/default.jpg"}
+                                    />
+                                    <Card.Header>{`${emp.firstName} ${emp.middleName} ${emp.lastName}`}</Card.Header>
+                                    <Card.Meta>{emp.employeeNo}</Card.Meta>
+                                    <Card.Description>
+                                        Total Borrowed Tools: <strong>{emp.totalBorrowed}</strong>
+                                    </Card.Description>
+                                </Card.Content>
 
-                            <Card.Content>
-                                <Table celled>
-                                    <Table.Header>
-                                        <Table.Row>
-                                            <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
-                                            <Table.HeaderCell rowSpan='2'>Serial No.</Table.HeaderCell>
-                                        </Table.Row>
-                                    </Table.Header>
+                                {emp.borrowedTools && emp.borrowedTools.length > 0 && (
+                                    <Card.Content>
+                                        <Table celled>
+                                            <Table.Header>
+                                                <Table.Row>
+                                                    <Table.HeaderCell>Tool Name</Table.HeaderCell>
+                                                    <Table.HeaderCell>Serial No.</Table.HeaderCell>
+                                                </Table.Row>
+                                            </Table.Header>
+                                            <Table.Body>
+                                                {emp.borrowedTools.map(tool => (
+                                                    <Table.Row key={tool.serialNo}>
+                                                        <Table.Cell>{tool.toolName}</Table.Cell>
+                                                        <Table.Cell>{tool.serialNo}</Table.Cell>
+                                                    </Table.Row>
+                                                ))}
+                                            </Table.Body>
+                                        </Table>
+                                    </Card.Content>
+                                )}
 
-                                    {x.borrowedTools !== null && x.borrowedTools.map(y =>
-                                        <Table.Body>
-                                            <Table.Row>
-                                                <TableCell>{y.toolName}</TableCell>
-                                                <TableCell>{y.serialNo}</TableCell>
-                                            </Table.Row>
-                                        </Table.Body>
-                                    )}
-                                </Table>
-                            </Card.Content>
-
-                            <Card.Content extra>
-                                <div className='ui two buttons'>
-                                    <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                        Edit
-                                    </Button>
-                                    <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                        Delete
-                                    </Button>
-                                </div>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </Card.Group>
-
-                {employeesList === null || employeesList.length === 0 && loader !== true &&
+                                <Card.Content extra>
+                                    <div className='ui two buttons'>
+                                        <Button basic color='grey' onClick={() => handleOpenEditModal(emp)}>
+                                            Edit
+                                        </Button>
+                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(emp.id)}>
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </Card.Content>
+                            </Card>
+                        ))}
+                    </Card.Group>
+                ) : (
                     <div style={{ textAlign: 'center', padding: 120 }}>
                         <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
                     </div>
-                }
-                {loader === true &&
-                    <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                        <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
-                    </div>
-                }
+                )}
 
-                {Object.keys(selectedEmployee).length === 0 &&
+                {/* Pagination */}
+                {Object.keys(selectedEmployee).length === 0 && totalEmployee > 0 && (
                     <Pagination
                         activePage={page}
                         boundaryRange={boundaryRange}
                         onPageChange={(e, { activePage }) => setPage(activePage)}
                         size='mini'
                         siblingRange={siblingRange}
-                        totalPages={totalEmployee / 12}
-                        // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
+                        totalPages={Math.ceil(totalEmployee / 12)}
                         ellipsisItem={showEllipsis ? undefined : null}
                         firstItem={showFirstAndLastNav ? undefined : null}
                         lastItem={showFirstAndLastNav ? undefined : null}
                         prevItem={showPreviousAndNextNav ? undefined : null}
                         nextItem={showPreviousAndNextNav ? undefined : null}
-                        style={{ float: 'right', marginTop: 10 }}
+                        style={{ marginTop: 10, float: isMobile ? 'none' : 'right' }}
                     />
-                }
+                )}
             </div>
 
             <Modal
@@ -625,9 +640,16 @@ const Employees = () => {
                     <Button onClick={handleCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddEmployee}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddEmployee} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddEmployee} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -644,9 +666,16 @@ const Employees = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteEmployee}>
-                        <Icon name='trash' />Delete
+                    {!loader &&
+                        <Button negative onClick={handleDeleteEmployee} disabled={loader}>
+                        <Icon name='trash' /> Delete
                     </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteEmployee} disabled={loader}>
+                        <Icon loading name='spinner' /> 
+                    </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -704,9 +733,16 @@ const Employees = () => {
                     <Button onClick={handleCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditEmployee}>
-                        <Icon name='save' />Submit
+                    {!loader &&
+                        <Button onClick={handleEditEmployee} disabled={loader}>
+                        <Icon name='save' /> Submit
                     </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditEmployee}>
+                        <Icon loading name='spinner' />
+                    </Button>
+                    }
                 </Modal.Actions>
             </Modal>
         </div>
