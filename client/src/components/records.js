@@ -4,6 +4,7 @@ import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
+import { useMediaQuery } from 'react-responsive';
 const axios = require("axios");
 const moment = require("moment");
 
@@ -732,14 +733,16 @@ const Records = () => {
             });
     }
 
+    const isMobile = useMediaQuery({ maxWidth: 768 });
+
     return (
         <div>
             <ToastContainer />
-            <Button size="large" style={{ float: 'left' }} onClick={() => setAddModal(true)}><Icon name='plus' />Borrow Tool</Button>
+            <Button size="large" style={{ float: 'left' }} onClick={() => setAddModal(true)}>
+                <Icon name='plus' />Borrow Tool
+            </Button>
 
-            <div style={{
-                float: 'right', width: '30%', zIndex: 100,
-            }}>
+            <div style={{ float: 'right', width: isMobile ? '100%' : '30%', zIndex: 100, marginTop: isMobile ? 20 : 0 }}>
                 <Select
                     defaultValue={searchTool}
                     options={ToolsOption(toolsOptionsList)}
@@ -749,7 +752,6 @@ const Records = () => {
                     isMulti
                     theme={(theme) => ({
                         ...theme,
-                        // borderRadius: 0,
                         colors: {
                             ...theme.colors,
                             text: 'black',
@@ -761,61 +763,120 @@ const Records = () => {
                 />
             </div>
 
-            <div style={{ paddingTop: 50, }}>
-                <h3 style={{ textAlign: 'center' }}><Label color="grey"><h4>Borrowed</h4></Label></h3>
-                <div style={{ overflowY: 'auto', width: '100%', height: '100%', minHeight: '30vh', maxHeight: '30vh', backgroundColor: '#EEEEEE', }}>
-                    <Table celled color="blue">
-                        <Table.Header style={{ position: 'sticky', top: 0, zIndex: 2 }}>
-                            <Table.Row>
-                                <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Tool SN.</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Date Borrowed</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Project</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Processed By</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Status</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Remarks</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Actions</Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Header>
+            <div style={{ paddingTop: 50 }}>
+                <h3 style={{ textAlign: 'left' }}>
+                    <Label color="grey"><h4>Borrowed</h4></Label>
+                </h3>
 
-                        {recordsList !== null && loader !== true && recordsList.map(x =>
-                            <Table.Body>
-                                <Table.Row key={x.id}>
-                                    <Table.Cell>{x.toolName}</Table.Cell>
-                                    <Table.Cell>{x.serialNo}</Table.Cell>
-                                    <Table.Cell>{x.employeeName}</Table.Cell>
-                                    <Table.Cell>{x.dateBorrowed !== "" ? moment(x.dateBorrowed).format("MMMM DD, yyy") : ""}</Table.Cell>
-                                    <Table.Cell>{x.project}</Table.Cell>
-                                    <Table.Cell>{x.processedBy}</Table.Cell>
-                                    <Table.Cell textAlign='center'>
+                <div style={{ overflowY: 'auto', width: '100%', height: '100%', minHeight: '30vh', maxHeight: '30vh', backgroundColor: '#EEEEEE', padding: isMobile ? 10 : 0 }}>
+                    {isMobile ? (
+                        // Mobile: Cards view
+                        recordsList && recordsList.length > 0 ? (
+                            recordsList.map((x) => (
+                                <div
+                                    key={x.id}
+                                    style={{
+                                        background: 'white',
+                                        borderRadius: 8,
+                                        padding: 16,
+                                        marginBottom: 16,
+                                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                                        fontSize: 14,
+                                    }}
+                                >
+                                    <div><strong>Tool Name:</strong> {x.toolName}</div>
+                                    <div><strong>Tool SN:</strong> {x.serialNo}</div>
+                                    <div><strong>Borrower:</strong> {x.employeeName}</div>
+                                    <div><strong>Date Borrowed:</strong> {x.dateBorrowed ? moment(x.dateBorrowed).format("MMMM DD, yyyy") : ''}</div>
+                                    <div><strong>Project:</strong> {x.project}</div>
+                                    <div><strong>Processed By:</strong> {x.processedBy}</div>
+                                    <div>
+                                        <strong>Status:</strong>{' '}
                                         <Label color='blue' horizontal>
                                             <Icon color='white' name='checkmark' size='large' />{x.status}
                                         </Label>
-                                    </Table.Cell>
-                                    <Table.Cell>{x.remarks}</Table.Cell>
-                                    <Table.Cell textAlign='center'>
-                                        <Button.Group>
-                                            <Button basic color="grey" onClick={() => handleOpenDeletePopup(x.id)}><Icon color='white' name='delete' />Delete</Button>
-                                            <Button basic color="grey" onClick={() => handleOpenReturnModal(x)}><Icon color='white' name='reply' />Return</Button>
+                                    </div>
+                                    <div><strong>Remarks:</strong> {x.remarks}</div>
+                                    <div style={{ marginTop: 12, textAlign: 'center' }}>
+                                        <Button.Group fluid>
+                                            <Button basic color="grey" onClick={() => handleOpenDeletePopup(x.id)}>
+                                                <Icon color='white' name='delete' /> Delete
+                                            </Button>
+                                            <Button basic color="grey" onClick={() => handleOpenReturnModal(x)}>
+                                                <Icon color='white' name='reply' /> Return
+                                            </Button>
                                         </Button.Group>
-                                    </Table.Cell>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div style={{ margin: '0 auto', textAlign: 'center', color: '#C4C4C4', paddingTop: 50 }}>
+                                No data found.
+                            </div>
+                        )
+                    ) : (
+                        // Desktop/tablet: Table view
+                        <Table celled color="blue">
+                            <Table.Header style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+                                <Table.Row>
+                                    <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Tool SN.</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Date Borrowed</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Project</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Processed By</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Status</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Remarks</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Actions</Table.HeaderCell>
                                 </Table.Row>
-                            </Table.Body>
-                        )}
-                    </Table>
-                    {recordsList === null || recordsList.length === 0 && loader !== true &&
+                            </Table.Header>
+
+                            {recordsList !== null && loader !== true && recordsList.map(x =>
+                                <Table.Body key={x.id}>
+                                    <Table.Row>
+                                        <Table.Cell>{x.toolName}</Table.Cell>
+                                        <Table.Cell>{x.serialNo}</Table.Cell>
+                                        <Table.Cell>{x.employeeName}</Table.Cell>
+                                        <Table.Cell>{x.dateBorrowed ? moment(x.dateBorrowed).format("MMMM DD, yyyy") : ""}</Table.Cell>
+                                        <Table.Cell>{x.project}</Table.Cell>
+                                        <Table.Cell>{x.processedBy}</Table.Cell>
+                                        <Table.Cell textAlign='center'>
+                                            <Label color='blue' horizontal>
+                                                <Icon color='white' name='checkmark' size='large' />{x.status}
+                                            </Label>
+                                        </Table.Cell>
+                                        <Table.Cell>{x.remarks}</Table.Cell>
+                                        <Table.Cell textAlign='center'>
+                                            <Button.Group>
+                                                <Button basic color="grey" onClick={() => handleOpenDeletePopup(x.id)}>
+                                                    <Icon color='white' name='delete' />Delete
+                                                </Button>
+                                                <Button basic color="grey" onClick={() => handleOpenReturnModal(x)}>
+                                                    <Icon color='white' name='reply' />Return
+                                                </Button>
+                                            </Button.Group>
+                                        </Table.Cell>
+                                    </Table.Row>
+                                </Table.Body>
+                            )}
+
+                        </Table>
+                    )}
+
+                    {(recordsList === null || recordsList.length === 0) && loader !== true && !isMobile && (
                         <div style={{ margin: '0 auto', textAlign: 'center' }}>
                             <h1 style={{ color: '#C4C4C4', marginTop: 50 }}>No data found.</h1>
                         </div>
-                    }
-                    {loader === true &&
+                    )}
+
+                    {loader === true && (
                         <div style={{ margin: '0 auto', textAlign: 'center' }}>
                             <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
                         </div>
-                    }
+                    )}
                 </div>
-                {Object.keys(selectedRecord).length === 0 &&
+
+                {Object.keys(selectedRecord).length === 0 && (
                     <Pagination
                         activePage={borrowedPage}
                         boundaryRange={boundaryRange}
@@ -823,7 +884,6 @@ const Records = () => {
                         size='mini'
                         siblingRange={siblingRange}
                         totalPages={totalBorrowed / 12}
-                        // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
                         ellipsisItem={showEllipsis ? undefined : null}
                         firstItem={showFirstAndLastNav ? undefined : null}
                         lastItem={showFirstAndLastNav ? undefined : null}
@@ -831,59 +891,116 @@ const Records = () => {
                         nextItem={showPreviousAndNextNav ? undefined : null}
                         style={{ float: 'right', marginTop: 10 }}
                     />
-                }
+                )}
             </div>
 
-            <div style={{ paddingTop: 50, }}>
-                <h3 style={{ textAlign: 'center' }}><Label color="grey"><h4>Returned</h4></Label></h3>
-                <div style={{ overflowY: 'auto', width: '100%', height: '100%', minHeight: '30vh', maxHeight: '30vh', backgroundColor: '#EEEEEE', }}>
-                    <Table celled role="grid" aria-labelledby="header" color="green">
-                        <Table.Header style={{ position: 'sticky', top: 0, zIndex: 2 }}>
-                            <Table.Row>
-                                <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Tool SN.</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Date Borrowed</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Processed By</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Date Returned</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Received By</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Status</Table.HeaderCell>
-                                <Table.HeaderCell rowSpan='2'>Remarks</Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Header>
+            <div style={{ paddingTop: 50 }}>
+                <h3 style={{ textAlign: 'left' }}>
+                    <Label color="grey"><h4>Returned</h4></Label>
+                </h3>
 
-                        <Table.Body>
-                            {returnedRecordsList !== null && loader !== true && returnedRecordsList.map(x =>
-                                <Table.Row>
-                                    <Table.Cell>{x.toolName}</Table.Cell>
-                                    <Table.Cell>{x.serialNo}</Table.Cell>
-                                    <Table.Cell>{x.employeeName}</Table.Cell>
-                                    <Table.Cell>{x.dateBorrowed !== "" ? moment(x.dateBorrowed).format("MMMM DD, yyyy") : ""}</Table.Cell>
-                                    <Table.Cell>{x.processedBy}</Table.Cell>
-                                    <Table.Cell>{x.dateReturned !== "" ? moment(x.dateReturned).format("MMMM DD, yyyy | HH:mm a") : ""}</Table.Cell>
-                                    <Table.Cell>{x.receivedBy}</Table.Cell>
-                                    <Table.Cell textAlign='center'>
+                <div
+                    style={{
+                        overflowY: 'auto',
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '30vh',
+                        maxHeight: '30vh',
+                        backgroundColor: '#EEEEEE',
+                        padding: isMobile ? 10 : 0,
+                    }}
+                >
+                    {isMobile ? (
+                        // Mobile: Cards
+                        returnedRecordsList && returnedRecordsList.length > 0 ? (
+                            returnedRecordsList.map((x) => (
+                                <div
+                                    key={x.id}
+                                    style={{
+                                        background: 'white',
+                                        borderRadius: 8,
+                                        padding: 16,
+                                        marginBottom: 16,
+                                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                                        fontSize: 14,
+                                    }}
+                                >
+                                    <div><strong>Tool Name:</strong> {x.toolName}</div>
+                                    <div><strong>Tool SN:</strong> {x.serialNo}</div>
+                                    <div><strong>Borrower:</strong> {x.employeeName}</div>
+                                    <div><strong>Date Borrowed:</strong> {x.dateBorrowed ? moment(x.dateBorrowed).format("MMMM DD, yyyy") : ''}</div>
+                                    <div><strong>Processed By:</strong> {x.processedBy}</div>
+                                    <div><strong>Date Returned:</strong> {x.dateReturned ? moment(x.dateReturned).format("MMMM DD, yyyy | HH:mm a") : ''}</div>
+                                    <div><strong>Received By:</strong> {x.receivedBy}</div>
+                                    <div>
+                                        <strong>Status:</strong>{' '}
                                         <Label color='green' horizontal>
                                             <Icon color='white' name='checkmark' size='large' />{x.status}
                                         </Label>
-                                    </Table.Cell>
-                                    <Table.Cell>{x.remarks}</Table.Cell>
+                                    </div>
+                                    <div><strong>Remarks:</strong> {x.remarks}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div style={{ margin: '0 auto', textAlign: 'center', color: '#C4C4C4', paddingTop: 50 }}>
+                                No data found.
+                            </div>
+                        )
+                    ) : (
+                        // Desktop/tablet: Table view
+                        <Table celled role="grid" aria-labelledby="header" color="green">
+                            <Table.Header style={{ position: 'sticky', top: 0, zIndex: 2 }}>
+                                <Table.Row>
+                                    <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Tool SN.</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Date Borrowed</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Processed By</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Date Returned</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Received By</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Status</Table.HeaderCell>
+                                    <Table.HeaderCell rowSpan='2'>Remarks</Table.HeaderCell>
                                 </Table.Row>
-                            )}
-                        </Table.Body>
-                    </Table>
-                    {returnedRecordsList === null || returnedRecordsList.length === 0 && loader !== true &&
+                            </Table.Header>
+
+                            <Table.Body>
+                                {returnedRecordsList !== null &&
+                                    loader !== true &&
+                                    returnedRecordsList.map((x) => (
+                                        <Table.Row key={x.id}>
+                                            <Table.Cell>{x.toolName}</Table.Cell>
+                                            <Table.Cell>{x.serialNo}</Table.Cell>
+                                            <Table.Cell>{x.employeeName}</Table.Cell>
+                                            <Table.Cell>{x.dateBorrowed ? moment(x.dateBorrowed).format("MMMM DD, yyyy") : ""}</Table.Cell>
+                                            <Table.Cell>{x.processedBy}</Table.Cell>
+                                            <Table.Cell>{x.dateReturned ? moment(x.dateReturned).format("MMMM DD, yyyy | HH:mm a") : ""}</Table.Cell>
+                                            <Table.Cell>{x.receivedBy}</Table.Cell>
+                                            <Table.Cell textAlign='center'>
+                                                <Label color='green' horizontal>
+                                                    <Icon color='white' name='checkmark' size='large' />{x.status}
+                                                </Label>
+                                            </Table.Cell>
+                                            <Table.Cell>{x.remarks}</Table.Cell>
+                                        </Table.Row>
+                                    ))}
+                            </Table.Body>
+                        </Table>
+                    )}
+
+                    {(returnedRecordsList === null || returnedRecordsList.length === 0) && loader !== true && !isMobile && (
                         <div style={{ margin: '0 auto', textAlign: 'center' }}>
                             <h1 style={{ color: '#C4C4C4', marginTop: 50 }}>No data found.</h1>
                         </div>
-                    }
-                    {loader === true &&
+                    )}
+
+                    {loader === true && (
                         <div style={{ margin: '0 auto', textAlign: 'center' }}>
                             <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
                         </div>
-                    }
+                    )}
                 </div>
-                {Object.keys(selectedRecord).length === 0 &&
+
+                {Object.keys(selectedRecord).length === 0 && (
                     <Pagination
                         activePage={returnedPage}
                         boundaryRange={boundaryRange}
@@ -891,7 +1008,6 @@ const Records = () => {
                         size='mini'
                         siblingRange={siblingRange}
                         totalPages={totalReturned / 12}
-                        // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
                         ellipsisItem={showEllipsis ? undefined : null}
                         firstItem={showFirstAndLastNav ? undefined : null}
                         lastItem={showFirstAndLastNav ? undefined : null}
@@ -899,7 +1015,7 @@ const Records = () => {
                         nextItem={showPreviousAndNextNav ? undefined : null}
                         style={{ float: 'right', marginTop: 10 }}
                     />
-                }
+                )}
             </div>
 
             <Modal

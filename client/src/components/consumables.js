@@ -4,6 +4,7 @@ import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
+import { useMediaQuery } from 'react-responsive';
 
 //import pdfmake
 import pdfMake from 'pdfmake/build/pdfmake.js';
@@ -489,7 +490,7 @@ const Consumables = () => {
                             unimore: 'https://i.ibb.co/mTwt2jt/unimore-logo-back-black.png'
                         }
                     }
-    
+
                     document.content.push({
                         // layout: 'lightHorizontalLines',
                         table: {
@@ -512,7 +513,7 @@ const Consumables = () => {
                             ]
                         },
                     });
-    
+
                     response.data.forEach(y => {
                         document.content.push({
                             // layout: 'lightHorizontalLines',
@@ -537,7 +538,7 @@ const Consumables = () => {
                             },
                         });
                     });
-    
+
                     pdfMake.tableLayouts = {
                         exampleLayout: {
                             hLineWidth: function (i, node) {
@@ -560,7 +561,7 @@ const Consumables = () => {
                             }
                         }
                     };
-    
+
                     // pdfMake.createPdf(document).download();
                     pdfMake.createPdf(document).print({}, window.frames['printPdf']);
                 } else {
@@ -585,7 +586,7 @@ const Consumables = () => {
                             unimore: 'https://i.ibb.co/mTwt2jt/unimore-logo-back-black.png'
                         }
                     }
-    
+
                     document.content.push({
                         // layout: 'lightHorizontalLines',
                         table: {
@@ -608,7 +609,7 @@ const Consumables = () => {
                             ]
                         },
                     });
-    
+
                     obj.forEach(y => {
                         document.content.push({
                             // layout: 'lightHorizontalLines',
@@ -633,7 +634,7 @@ const Consumables = () => {
                             },
                         });
                     });
-    
+
                     pdfMake.tableLayouts = {
                         exampleLayout: {
                             hLineWidth: function (i, node) {
@@ -656,7 +657,7 @@ const Consumables = () => {
                             }
                         }
                     };
-    
+
                     // pdfMake.createPdf(document).download();
                     pdfMake.createPdf(document).print({}, window.frames['printPdf']);
                 }
@@ -670,157 +671,200 @@ const Consumables = () => {
             });
     }
 
+    const isMobile = useMediaQuery({ maxWidth: 768 });
+
     return (
         <div>
             <ToastContainer />
-            <Button size="large" style={{ float: 'left' }} onClick={() => setAddModal(true)}><Icon name='plus' />Add Item</Button>
 
-            <div style={{
-                float: 'right', width: '30%', zIndex: 100, marginBottom: 20
-            }}>
-                <Select
-                    defaultValue={selectedConsumables}
-                    options={ConsumablesOption(consumablesOptionsList)}
-                    onChange={e => setSelectedConsumables(e)}
-                    placeholder='Search...'
-                    isClearable
-                    isMulti
-                    theme={(theme) => ({
-                        ...theme,
-                        // borderRadius: 0,
-                        colors: {
-                            ...theme.colors,
-                            text: 'black',
-                            primary25: '#66c0f4',
-                            primary: '#B9B9B9',
-                        },
-                    })}
-                    styles={customMultiSelectStyle}
-                />
+            {/* Top Controls */}
+            <div
+                style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 20,
+                    gap: 10,
+                }}
+            >
+                <Button size="large" onClick={() => setAddModal(true)}>
+                    <Icon name="plus" /> Add Item
+                </Button>
+
+                <div style={{ flex: '1 1 300px', minWidth: 200 }}>
+                    <Select
+                        defaultValue={selectedConsumables}
+                        options={ConsumablesOption(consumablesOptionsList)}
+                        onChange={(e) => setSelectedConsumables(e)}
+                        placeholder="Search..."
+                        isClearable
+                        isMulti
+                        theme={(theme) => ({
+                            ...theme,
+                            colors: {
+                                ...theme.colors,
+                                text: 'black',
+                                primary25: '#66c0f4',
+                                primary: '#B9B9B9',
+                            },
+                        })}
+                        styles={customMultiSelectStyle}
+                    />
+                </div>
+
+                <Button size="large" onClick={() => exportToPDF()}>
+                    <Icon name="file pdf" /> Export to PDF
+                </Button>
             </div>
 
-            <Button size='large' style={{ float: 'right' }} onClick={() => exportToPDF()}><Icon name='file pdf' />Export to PDF</Button>
-
-            <div style={{ width: "100%", overflowY: 'scroll', height: '100%', maxHeight: '78vh', }}>
-                <Table celled structured size='large' color='blue'>
-                    <Table.Header style={{ position: "sticky", top: 0 }}>
-                        <Table.Row>
-                            <Table.HeaderCell rowSpan='2'>Name</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Brand</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Unit</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Total Item Received</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Used</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Total Available</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Date Purchased</Table.HeaderCell>
-                            <Table.HeaderCell colSpan='2' style={{ textAlign: 'center', zIndex: 2 }}>Critical Level</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2'>Description</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center', zIndex: 2 }}>Action</Table.HeaderCell>
-                        </Table.Row>
-                        <Table.Row>
-                            <Table.HeaderCell rowSpan='2' style={{ zIndex: 2 }}>Crit Value</Table.HeaderCell>
-                            <Table.HeaderCell rowSpan='2' style={{ zIndex: 2 }}>Status</Table.HeaderCell>
-                        </Table.Row>
-                    </Table.Header>
-
-                    {consumablesList !== null && loader !== true && consumablesList.map(x =>
-                        <Table.Body>
-                            <Table.Row>
-                                <Table.Cell>{x.name}</Table.Cell>
-                                <Table.Cell>{x.brand ? x.brand : "No Brand"}</Table.Cell>
-                                <Table.Cell>{x.unit}</Table.Cell>
-                                <Table.Cell>{x.quantity.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Table.Cell>
-                                <Table.Cell>{x.used.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Table.Cell>
-                                <Table.Cell>{(x.quantity - x.used).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</Table.Cell>
-                                <Table.Cell>{x.datePurchased ? moment(x.datePurchased).format("MM/DD/yyyy") : "No Date"}</Table.Cell>
-                                <Table.Cell>{x.critLevel}</Table.Cell>
-                                <Table.Cell positive={x.critLevelIndicator === false ? true : false} negative={x.critLevelIndicator} style={{ textAlign: "center" }}>
-                                    {(x.quantity - x.used) > 0 &&
-                                        < Label color={x.critLevelIndicator === false ? "green" : "orange"} horizontal>
-                                            {x.critLevelIndicator === false ? "Good" : "Low of Stocks"}
+            <div style={{ width: '100%', maxHeight: '78vh', overflowY: 'auto' }}>
+                {isMobile ? (
+                    // Mobile view: show cards instead of table
+                    consumablesList && consumablesList.length > 0 ? (
+                        consumablesList.map((x) => (
+                            <div
+                                key={x.id}
+                                style={{
+                                    border: '1px solid #ccc',
+                                    borderRadius: 8,
+                                    padding: 16,
+                                    marginBottom: 16,
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                                    background: 'white',
+                                }}
+                            >
+                                <div><strong>Name:</strong> {x.name}</div>
+                                <div><strong>Brand:</strong> {x.brand || 'No Brand'}</div>
+                                <div><strong>Unit:</strong> {x.unit}</div>
+                                <div><strong>Total Item Received:</strong> {x.quantity.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
+                                <div><strong>Used:</strong> {x.used.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
+                                <div><strong>Total Available:</strong> {(x.quantity - x.used).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</div>
+                                <div><strong>Date Purchased:</strong> {x.datePurchased ? moment(x.datePurchased).format('MM/DD/yyyy') : 'No Date'}</div>
+                                <div><strong>Crit Value:</strong> {x.critLevel}</div>
+                                <div>
+                                    <strong>Status:</strong>{' '}
+                                    {(x.quantity - x.used) > 0 ? (
+                                        <Label color={x.critLevelIndicator === false ? 'green' : 'orange'} horizontal>
+                                            {x.critLevelIndicator === false ? 'Good' : 'Low of Stocks'}
                                         </Label>
-                                    }
-                                    {(x.quantity - x.used) <= 0 &&
-                                        < Label color="red" horizontal>
+                                    ) : (
+                                        <Label color="red" horizontal>
                                             Out of Stocks
                                         </Label>
-                                    }
-                                </Table.Cell>
-                                <Table.Cell>{x.description}</Table.Cell>
-                                <Table.Cell style={{ textAlign: 'center' }}>
-                                    <div className='ui two buttons'>
-                                        <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                            Edit
-                                        </Button>
-                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </Table.Cell>
+                                    )}
+                                </div>
+                                <div><strong>Description:</strong> {x.description}</div>
+                                <div style={{ marginTop: 12, textAlign: 'center' }}>
+                                    <Button basic color="grey" onClick={() => handleOpenEditModal(x)} style={{ marginRight: 8 }}>
+                                        Edit
+                                    </Button>
+                                    <Button basic color="grey" onClick={() => handleOpenDeletePopup(x.id)}>
+                                        Delete
+                                    </Button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: 50, color: '#C4C4C4' }}>
+                            No data found!
+                        </div>
+                    )
+                ) : (
+                    // Desktop/tablet view: show table as before
+                    <Table celled structured size="large" color="blue">
+                        <Table.Header style={{ position: 'sticky', top: 0, zIndex: 1, background: 'white' }}>
+                            <Table.Row>
+                                <Table.HeaderCell rowSpan="2">Name</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Brand</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Unit</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Total Item Received</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Used</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Total Available</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Date Purchased</Table.HeaderCell>
+                                <Table.HeaderCell colSpan="2" style={{ textAlign: 'center', zIndex: 2 }}>
+                                    Critical Level
+                                </Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2">Description</Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2" style={{ textAlign: 'center', zIndex: 2 }}>
+                                    Action
+                                </Table.HeaderCell>
                             </Table.Row>
+                            <Table.Row>
+                                <Table.HeaderCell rowSpan="2" style={{ zIndex: 2 }}>
+                                    Crit Value
+                                </Table.HeaderCell>
+                                <Table.HeaderCell rowSpan="2" style={{ zIndex: 2 }}>
+                                    Status
+                                </Table.HeaderCell>
+                            </Table.Row>
+                        </Table.Header>
+
+                        <Table.Body>
+                            {consumablesList &&
+                                consumablesList.map((x) => (
+                                    <Table.Row key={x.id}>
+                                        <Table.Cell>{x.name}</Table.Cell>
+                                        <Table.Cell>{x.brand || 'No Brand'}</Table.Cell>
+                                        <Table.Cell>{x.unit}</Table.Cell>
+                                        <Table.Cell>{x.quantity.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Table.Cell>
+                                        <Table.Cell>{x.used.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Table.Cell>
+                                        <Table.Cell>{(x.quantity - x.used).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Table.Cell>
+                                        <Table.Cell>{x.datePurchased ? moment(x.datePurchased).format('MM/DD/yyyy') : 'No Date'}</Table.Cell>
+                                        <Table.Cell>{x.critLevel}</Table.Cell>
+                                        <Table.Cell
+                                            positive={x.critLevelIndicator === false}
+                                            negative={x.critLevelIndicator}
+                                            style={{ textAlign: 'center' }}
+                                        >
+                                            {(x.quantity - x.used) > 0 ? (
+                                                <Label color={x.critLevelIndicator === false ? 'green' : 'orange'} horizontal>
+                                                    {x.critLevelIndicator === false ? 'Good' : 'Low of Stocks'}
+                                                </Label>
+                                            ) : (
+                                                <Label color="red" horizontal>
+                                                    Out of Stocks
+                                                </Label>
+                                            )}
+                                        </Table.Cell>
+                                        <Table.Cell>{x.description}</Table.Cell>
+                                        <Table.Cell style={{ textAlign: 'center' }}>
+                                            <div className="ui two buttons">
+                                                <Button basic color="grey" onClick={() => handleOpenEditModal(x)}>
+                                                    Edit
+                                                </Button>
+                                                <Button basic color="grey" onClick={() => handleOpenDeletePopup(x.id)}>
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </Table.Cell>
+                                    </Table.Row>
+                                ))}
                         </Table.Body>
-                    )}
-                </Table>
+                    </Table>
+                )}
 
-                {/* <Card.Group itemsPerRow={3} style={{ marginTop: 40, margin: '0 auto', width: '100%', backgroundColor: '#EEEEEE', overflowY: 'scroll', height: '100%', maxHeight: '80vh', }}>
-                    {consumablesList !== null && loader !== true && consumablesList.map(x =>
-                        <Card color='blue'>
-                            <Card.Content>
-                                <Card.Header>{x.name}</Card.Header>
-                                <Card.Meta>Brand: {x.brand ? x.brand : "No Brand"}</Card.Meta>
-                                <Card.Description>
-                                    <b>Unit: </b> {x.unit}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Date Purchased: </b> {x.datePurchased ? moment(x.datePurchased).format("MMM DD, yyyy") : "No Date"}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Description: </b> {x.description ? x.description : "No Description"}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Used: </b> {x.used + " / " + x.quantity}
-                                </Card.Description>
-                                <Card.Description>
-                                    <b>Total Available: </b> {(x.quantity - x.used)}
-                                </Card.Description>
-
-                                <Card.Content extra style={{ marginTop: 10 }}>
-                                    <div className='ui two buttons'>
-                                        <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                            Edit
-                                        </Button>
-                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </Card.Content>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </Card.Group> */}
-
-                {consumablesList === null || consumablesList.length === 0 && loader !== true &&
+                {(!consumablesList || consumablesList.length === 0) && !loader && (
                     <div style={{ textAlign: 'center', padding: 120 }}>
-                        <h1 style={{ color: "#C4C4C4" }}>No data found!</h1>
+                        <h1 style={{ color: '#C4C4C4' }}>No data found!</h1>
                     </div>
-                }
-                {loader === true &&
+                )}
+                {loader && (
                     <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                        <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
+                        <Icon loading name="spinner" size="huge" style={{ color: '#C4C4C4', marginTop: 50 }} />
                     </div>
-                }
-
+                )}
             </div>
 
-            {
-                Object.keys(selectedConsumables).length === 0 &&
+            {/* Pagination */}
+            {Object.keys(selectedConsumables).length === 0 && (
                 <Pagination
                     activePage={itemPage}
                     boundaryRange={boundaryRange}
                     onPageChange={(e, { activePage }) => setItemPage(activePage)}
-                    size='mini'
+                    size="mini"
                     siblingRange={siblingRange}
                     totalPages={totalItem / 12}
-                    // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
                     ellipsisItem={showEllipsis ? undefined : null}
                     firstItem={showFirstAndLastNav ? undefined : null}
                     lastItem={showFirstAndLastNav ? undefined : null}
@@ -828,7 +872,7 @@ const Consumables = () => {
                     nextItem={showPreviousAndNextNav ? undefined : null}
                     style={{ float: 'right', marginTop: 10 }}
                 />
-            }
+            )}
 
             <Modal
                 size="mini"
@@ -934,9 +978,16 @@ const Consumables = () => {
                     <Button onClick={handleCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddConsumables}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddConsumables} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddConsumables} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1056,9 +1107,16 @@ const Consumables = () => {
                     <Button onClick={handleCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditConsumables}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleEditConsumables} disabled={loader}>
+                            <Icon name='save' />Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditConsumables} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1075,9 +1133,16 @@ const Consumables = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteItem}>
-                        <Icon name='trash' />Delete
+                    {!loader &&
+                    <Button negative onClick={handleDeleteItem} disabled={loader}>
+                        <Icon name='trash' /> Delete
                     </Button>
+}
+                    {loader &&
+                    <Button negative onClick={handleDeleteItem} disabled={loader}>
+                        <Icon loading name='spinner' />
+                    </Button>
+}
                 </Modal.Actions>
             </Modal>
         </div >
