@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Modal, Form, Button, Card, Icon, Table, TableCell, Pagination, Menu, Grid, List, Segment, Label, Input } from 'semantic-ui-react'
+import { Modal, Form, Button, Card, Icon, Table, TableCell, Pagination, Menu, Grid, List, Segment, Label, Input, Loader } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
@@ -101,6 +101,7 @@ const Projects = () => {
     const [projectOptions, setProjectOptions] = useState(null);
     const [selectedProject, setSelectedProject] = useState([]);
     const [loader, setLoader] = useState(false);
+    const [addloader, setAddloader] = useState(false);
     const [id, setId] = useState(-1);
     const [projectName, setProjectName] = useState("");
     const [description, setDescription] = useState("");
@@ -135,6 +136,7 @@ const Projects = () => {
     const showPreviousAndNextNav = true;
 
     useEffect(() => {
+        setLoader(true);
         var data = {
             selectedProject: !selectedProject ? [] : selectedProject,
             fromDate: fromDate,
@@ -151,15 +153,15 @@ const Projects = () => {
                 headers: { "auth-token": token },
             })
             .then(function (response) {
-                // handle success
+                // handle success                
                 if (Array.isArray(response.data)) {
                     setProjectData(response.data);
-                    setProcessedBy(user.Name)
+                    setProcessedBy(user.Name);
                 } else {
                     var obj = [];
                     obj.push(response.data);
                     setProjectData(obj);
-                    setProcessedBy(user.Name)
+                    setProcessedBy(user.Name);
                 }
             })
             .catch(function (error) {
@@ -168,8 +170,9 @@ const Projects = () => {
             })
             .finally(function () {
                 // always executed
+                setLoader(false);
             });
-    }, [selectedProject, fromDate, toDate, page, loader]);
+    }, [selectedProject, fromDate, toDate, page]);
 
     const projectsList = projectData
         ? projectData.map((x) => ({
@@ -359,7 +362,7 @@ const Projects = () => {
             status: status ? status.value : "",
         }
 
-        setLoader(true);
+        setAddloader(true);
 
         axios
             .post(url, data, {
@@ -373,7 +376,7 @@ const Projects = () => {
                     position: "top-center"
                 });
                 setAddModal(false);
-                setLoader(false);
+                setAddloader(false);
                 setId(-1);
                 setProjectName("");
                 setDescription("");
@@ -385,7 +388,7 @@ const Projects = () => {
                 toast.error(JSON.stringify(error.response.data), {
                     position: "top-center"
                 });
-                setLoader(false);
+                setAddloader(false);
             })
             .finally(function () {
                 // always executed
@@ -771,7 +774,7 @@ const Projects = () => {
                             { text: y.SerialNo, fontSize: 7, alignment: "left", },
                             { text: y.EmployeeName, fontSize: 7, alignment: "left", },
                             { text: moment(y.DateBorrowed).format("MM/DD/yyyy").toString(), fontSize: 7, alignment: "center", },
-                            { text: y.Status, fontSize: 7, alignment: "center", color: y.Status === "Returned" ? "green" : "black"},
+                            { text: y.Status, fontSize: 7, alignment: "center", color: y.Status === "Returned" ? "green" : "black" },
                             { text: moment(y.DateReturned).format("MM/DD/yyyy | h:mm a").toString(), fontSize: 7, alignment: "center", },
                             { text: y.Remarks, fontSize: 7, alignment: "left", },
                         ],
@@ -808,285 +811,191 @@ const Projects = () => {
         pdfMake.createPdf(document).print({}, window.frames['printPdf']);
     }
 
+    const isMobile = window.innerWidth <= 768;
 
     return (
-        <div>
+        <div style={{ padding: "1rem" }}>
             <ToastContainer />
-            <Button size="large" style={{ float: 'left' }} onClick={() => setAddModal(true)}><Icon name='plus' />Add Form</Button>
+            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap" }}>
+                <Button size="large" onClick={() => setAddModal(true)}>
+                    <Icon name="plus" /> Add Form
+                </Button>
 
-            <div style={{
-                float: 'right', width: '30%', zIndex: 100,
-            }}>
-                <Select
-                    defaultValue={selectedProject}
-                    options={ProjectsOption(projectsOptionsList)}
-                    onChange={e => setSelectedProject(e)}
-                    placeholder='Search...'
-                    isClearable
-                    isMulti
-                    theme={(theme) => ({
-                        ...theme,
-                        // borderRadius: 0,
-                        colors: {
-                            ...theme.colors,
-                            text: 'black',
-                            primary25: '#66c0f4',
-                            primary: '#B9B9B9',
-                        },
-                    })}
-                    styles={customMultiSelectStyle}
-                />
+                <div style={{ width: isMobile ? "100%" : "30%", marginTop: isMobile ? "1rem" : 0 }}>
+                    <Select
+                        defaultValue={selectedProject}
+                        options={ProjectsOption(projectsOptionsList)}
+                        onChange={(e) => setSelectedProject(e)}
+                        placeholder="Search..."
+                        isClearable
+                        isMulti
+                        styles={customMultiSelectStyle}
+                    />
+                </div>
             </div>
 
-            <Grid style={{ width: '100%', }}>
-                <Grid.Column width={3} style={{ height: '100%', }}>
-                    <Menu fluid vertical size='massive' color="blue" style={{ height: '100%', minHeight: '74vh', maxHeight: '74vh' }}>
-
-                        <Menu.Item
-                            color="blue"
-                            style={{ backgroundColor: "#B9B9B9" }}
-                        >
-                            <h4 style={{ textAlign: 'center' }}>PROJECT</h4>
+            <Grid stackable style={{ marginTop: "2rem" }}>
+                {/* Project List */}
+                <Grid.Column width={isMobile ? 16 : 3}>
+                    <Menu fluid vertical size="massive" color="blue">
+                        <Menu.Item style={{ backgroundColor: "#B9B9B9" }}>
+                            <h4 style={{ textAlign: "center" }}>PROJECT</h4>
                         </Menu.Item>
 
-                        <div style={{ overflowY: 'scroll', height: '100%', minHeight: '60vh', maxHeight: '60vh' }}>
-                            {projectsList !== null && loader !== true && projectsList.map(x =>
+                        {loader ? (
+                            <Loader active inline="centered" style={{ marginTop: "2rem" }} />
+                        ) : projectsList && projectsList.length > 0 ? (
+                            projectsList.map((x) => (
                                 <Menu.Item
+                                    key={x.id}
                                     active={x.id === projId}
                                     onClick={() => setProjId(x.id)}
-                                    color="blue"
                                 >
-                                    <Grid>
-                                        <Grid.Column width={13}>
-                                            <List size='mini' animated>
-                                                <List.Item>
-                                                    <List.Content>
-                                                        <List.Header>{x.projectName}</List.Header>
-                                                        <List.Description>{moment(x.date).format("MMMM DD, yyyy")}</List.Description>
-                                                        <List.Description>{x.description}</List.Description>
-                                                        <List.Description>
-                                                            {x.status !== "" ?
-                                                                <Label color={x.status !== "On Going" ? "green" : "blue"}>{x.status}</Label> :
-                                                                ""
-                                                            }
-                                                        </List.Description>
-                                                    </List.Content>
-                                                </List.Item>
-                                            </List>
-                                        </Grid.Column>
-                                        <Grid.Column width={0}>
-                                            <div style={{ float: "right", marginLeft: 30 }}>
-                                                <Button circular size="mini" icon='edit' onClick={() => handleOpenEditModal(x)} /><br />
-                                                <Button circular size="mini" icon='trash' onClick={() => handleOpenDeletePopup(x.id)} style={{ marginTop: 5, zIndex: 1000 }} />
-                                            </div>
-                                        </Grid.Column>
-                                    </Grid>
+                                    <List>
+                                        <List.Item>
+                                            <List.Content>
+                                                <List.Header>{x.projectName}</List.Header>
+                                                <List.Description>{moment(x.date).format("MMMM DD, yyyy")}</List.Description>
+                                                <List.Description>{x.description}</List.Description>
+                                                {x.status && (
+                                                    <Label color={x.status !== "On Going" ? "green" : "blue"}>
+                                                        {x.status}
+                                                    </Label>
+                                                )}
+                                            </List.Content>
+                                        </List.Item>
+                                    </List>
+                                    <div style={{ marginTop: "0.5rem" }}>
+                                        <Button circular size="mini" icon="edit" onClick={() => handleOpenEditModal(x)} />
+                                        <Button circular size="mini" icon="trash" onClick={() => handleOpenDeletePopup(x.id)} style={{ marginLeft: "0.5rem" }} />
+                                    </div>
                                 </Menu.Item>
-                            )}
+                            ))
+                        ) : (
+                            <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                                <h4 style={{ color: "#C4C4C4" }}>No Project found!</h4>
+                            </div>
+                        )}
 
-                            {projectsList === null || projectsList.length === 0 && loader !== true &&
-                                <div style={{ textAlign: 'center', marginTop: 50 }}>
-                                    <h4 style={{ color: '#C4C4C4' }}>No Project found!</h4>
-                                </div>
-                            }
-
-                            {loader === true &&
-                                <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                                    <Icon loading name='spinner' size='medium' style={{ color: '#C4C4C4', marginTop: 50 }} />
-                                </div>
-                            }
-                        </div>
                         <Menu.Item>
-                            {Object.keys(selectedProject).length === 0 &&
+                            {selectedProject.length === 0 && (
                                 <Pagination
                                     activePage={page}
                                     boundaryRange={boundaryRange}
                                     onPageChange={(e, { activePage }) => setPage(activePage)}
-                                    size='mini'
+                                    size="mini"
                                     siblingRange={siblingRange}
-                                    totalPages={totalForm / 20}
-                                    // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
+                                    totalPages={Math.ceil(totalForm / 20)}
                                     ellipsisItem={showEllipsis ? undefined : null}
                                     firstItem={showFirstAndLastNav ? undefined : null}
                                     lastItem={showFirstAndLastNav ? undefined : null}
                                     prevItem={showPreviousAndNextNav ? undefined : null}
                                     nextItem={showPreviousAndNextNav ? undefined : null}
-                                    style={{}}
                                 />
-                            }
+                            )}
                         </Menu.Item>
                     </Menu>
                 </Grid.Column>
 
-                <Grid.Column stretched width={13}>
-                    <Segment style={{ marginTop: 20, height: '100%', minHeight: '72vh', maxHeight: '72vh' }}>
-                        {projId !== "" && projectsList !== null && loader !== true && projectsList.map(x =>
-                            <div color='blue' key={x.id}>
-                                {x.id === projId &&
-                                    <div>
-                                        <Button size='medium' style={{ marginBottom: 10 }} onClick={() => exportToPDF(x)}><Icon name='file pdf' />Export to PDF</Button>
-                                        <Button size='medium' style={{ float: 'right', marginBottom: 10 }} onClick={() => handleBorrowTool(x.id)}><Icon name='plus' />Add Tool</Button>
-                                        <Input size='small' type="date" label="To Date" style={{ float: 'right', marginRight: 10 }} value={toDate} onChange={e => setToDate(e.target.value)} />
-                                        <Input size='small' type="date" label="From Date" style={{ float: 'right', marginRight: 10 }} value={fromDate} onChange={e => setFromDate(e.target.value)} />
-
-                                        <div style={{ width: "100%", overflowY: 'scroll', height: '100%', maxHeight: '60vh' }}>
-                                            <Table celled color="blue">
-                                                <Table.Header style={{ position: "sticky", top: 0 }}>
-                                                    <Table.Row>
-                                                        <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Serial No.</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Date Borrowed</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Returned</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Date Returned</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2'>Remarks</Table.HeaderCell>
-                                                        <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
+                {/* Borrowed Tools Table / Cards */}
+                <Grid.Column width={isMobile ? 16 : 13}>
+                    <Segment style={{ minHeight: "72vh", maxHeight: "72vh", overflowY: "auto" }}>
+                        {loader ? (
+                            <Loader active inline="centered" size="large" content="Loading..." />
+                        ) : projId && projectsList ? (
+                            projectsList
+                                .filter((x) => x.id === projId)
+                                .map((proj) => {
+                                    const tools = proj.borrowedTools || [];
+                                    return isMobile ? (
+                                        <Card.Group key={proj.id} itemsPerRow={1} stackable>
+                                            {tools.length > 0 ? (
+                                                tools.map((y) => (
+                                                    <Card key={y.ToolName}>
+                                                        <Card.Content>
+                                                            <Card.Header>{y.ToolName}</Card.Header>
+                                                            <Card.Meta>Serial No: {y.SerialNo}</Card.Meta>
+                                                            <Card.Description>
+                                                                Borrower: {y.EmployeeName} <br />
+                                                                Date Borrowed: {moment(y.DateBorrowed).format("MMM DD, yyyy")} <br />
+                                                                Returned: {y.Status === "Returned" ? "✅" : "❌"} <br />
+                                                                Date Returned: {y.DateReturned ? moment(y.DateReturned).format("MM/DD/yyyy | h:mm a") : "-"} <br />
+                                                                Remarks: {y.Remarks || "-"}
+                                                            </Card.Description>
+                                                        </Card.Content>
+                                                        {y.Status !== "Returned" && (
+                                                            <Card.Content extra>
+                                                                <Button.Group>
+                                                                    <Button basic color="grey" onClick={() => handleEditItem(y)}>
+                                                                        <Icon name="edit" /> Edit
+                                                                    </Button>
+                                                                    <Button basic color="grey" onClick={() => handleOpenReturnModal(y)}>
+                                                                        <Icon name="reply" /> Return
+                                                                    </Button>
+                                                                </Button.Group>
+                                                            </Card.Content>
+                                                        )}
+                                                    </Card>
+                                                ))
+                                            ) : (
+                                                <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                                                    No tools borrowed.
+                                                </div>
+                                            )}
+                                        </Card.Group>
+                                    ) : (
+                                        <Table celled color="blue">
+                                            <Table.Header>
+                                                <Table.Row>
+                                                    <Table.HeaderCell>Tool Name</Table.HeaderCell>
+                                                    <Table.HeaderCell>Serial No.</Table.HeaderCell>
+                                                    <Table.HeaderCell>Borrower</Table.HeaderCell>
+                                                    <Table.HeaderCell>Date Borrowed</Table.HeaderCell>
+                                                    <Table.HeaderCell style={{ textAlign: "center" }}>Returned</Table.HeaderCell>
+                                                    <Table.HeaderCell>Date Returned</Table.HeaderCell>
+                                                    <Table.HeaderCell>Remarks</Table.HeaderCell>
+                                                    <Table.HeaderCell style={{ textAlign: "center" }}>Action</Table.HeaderCell>
+                                                </Table.Row>
+                                            </Table.Header>
+                                            <Table.Body>
+                                                {tools.map((y) => (
+                                                    <Table.Row key={y.ToolName}>
+                                                        <Table.Cell>{y.ToolName}</Table.Cell>
+                                                        <Table.Cell>{y.SerialNo}</Table.Cell>
+                                                        <Table.Cell>{y.EmployeeName}</Table.Cell>
+                                                        <Table.Cell>{moment(y.DateBorrowed).format("MMM DD, yyyy")}</Table.Cell>
+                                                        <Table.Cell style={{ textAlign: "center" }}>
+                                                            {y.Status === "Returned" ? <Icon color="green" name="checkmark" /> : ""}
+                                                        </Table.Cell>
+                                                        <Table.Cell>{y.DateReturned ? moment(y.DateReturned).format("MM/DD/yyyy | h:mm a") : ""}</Table.Cell>
+                                                        <Table.Cell>{y.Remarks}</Table.Cell>
+                                                        <Table.Cell style={{ textAlign: "center" }}>
+                                                            {y.Status !== "Returned" && (
+                                                                <Button.Group>
+                                                                    <Button basic color="grey" onClick={() => handleEditItem(y)}>
+                                                                        <Icon name="edit" /> Edit
+                                                                    </Button>
+                                                                    <Button basic color="grey" onClick={() => handleOpenReturnModal(y)}>
+                                                                        <Icon name="reply" /> Return
+                                                                    </Button>
+                                                                </Button.Group>
+                                                            )}
+                                                        </Table.Cell>
                                                     </Table.Row>
-                                                </Table.Header>
-                                                {x.id === projId && x.borrowedTools.length !== 0 && x.borrowedTools.map(y =>
-                                                    <Table.Body>
-                                                        <Table.Row>
-                                                            <TableCell>{y.ToolName}</TableCell>
-                                                            <TableCell>{y.SerialNo}</TableCell>
-                                                            <TableCell>{y.EmployeeName}</TableCell>
-                                                            <TableCell>{moment(y.DateBorrowed).format("MMM DD, yyyy")}</TableCell>
-                                                            <TableCell style={{ textAlign: 'center' }}>{y.Status === "Returned" ? <Icon color='green' size='large' name='checkmark' /> : ""}</TableCell>
-                                                            <TableCell>{y.DateReturned ? moment(y.DateReturned).format("MM/DD/yyyy | h:mm a") : ""}</TableCell>
-                                                            <TableCell>{y.Remarks}</TableCell>
-                                                            <TableCell style={{ textAlign: 'center' }}>
-                                                                <div className='ui one buttons'>
-                                                                    {y.Status !== "Returned" ?
-                                                                        <Button.Group>
-                                                                            <Button basic color='grey' onClick={() => handleEditItem(y)}>
-                                                                                <Icon name='edit' />Edit
-                                                                            </Button>
-                                                                            <Button basic color='grey' onClick={() => handleOpenReturnModal(y)}>
-                                                                                <Icon name='reply' />Return
-                                                                            </Button>
-                                                                        </Button.Group>
-                                                                        :
-                                                                        ""
-                                                                    }
-                                                                </div>
-                                                            </TableCell>
-                                                        </Table.Row>
-                                                    </Table.Body>
-                                                )}
-                                            </Table>
-                                        </div>
-                                    </div>
-                                }
-
-                                {/* <div className='ui two buttons'>
-                                    <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                        Edit
-                                    </Button>
-                                    <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                        Delete
-                                    </Button>
-                                </div> */}
-                            </div>
+                                                ))}
+                                            </Table.Body>
+                                        </Table>
+                                    );
+                                })
+                        ) : (
+                            <h3 style={{ textAlign: "center", marginTop: "20%", color: "#C4C4C4" }}>
+                                Select a Project to View Borrowed Tools.
+                            </h3>
                         )}
-                        {projId === "" && loader !== true &&
-                            <h1 style={{ textAlign: 'center', marginTop: '20%', color: '#C4C4C4' }}>Select a Project to View Borrowed Tools.</h1>
-                        }
-
-                        {loader === true &&
-                            <div style={{ margin: '0 auto', textAlign: 'center' }}>
-                                <Icon loading name='spinner' size='huge' style={{ color: '#C4C4C4', marginTop: 50 }} />
-                            </div>
-                        }
                     </Segment>
                 </Grid.Column>
             </Grid>
 
-            {/* <div style={{ paddingTop: 50, }}>
-                <Card.Group itemsPerRow={1} style={{ marginTop: 40, margin: '0 auto', width: '100%', backgroundColor: '#EEEEEE', overflowY: 'scroll', height: '100%', maxHeight: '70vh', }}>
-                    {projectsList !== null && loader !== true && projectsList.map(x =>
-                        <Card color='blue' key={x.id}>
-                            <Card.Content>
-                                <Button size='medium' style={{ float: 'right' }} onClick={() => handleBorrowTool(x.id)}><Icon name='plus' />Add Tool</Button>
-                                <Card.Header>Project Name: {x.projectName}</Card.Header>
-                                <Card.Description>Date: {moment(x.date).format("MMMM DD, yyyy")}</Card.Description>
-                                <Card.Meta>Description: {x.description}</Card.Meta>
-
-                                <Card.Content>
-                                    <Table celled>
-                                        <Table.Header>
-                                            <Table.Row>
-                                                <Table.HeaderCell rowSpan='2'>Tool Name</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Serial No.</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Borrower</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Date Borrowed</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Returned</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2'>Date Returned</Table.HeaderCell>
-                                                <Table.HeaderCell rowSpan='2' style={{ textAlign: 'center' }}>Action</Table.HeaderCell>
-                                            </Table.Row>
-                                        </Table.Header>
-                                        {x.borrowedTools.length !== 0 && x.borrowedTools.map(y =>
-                                            <Table.Body>
-                                                <Table.Row>
-                                                    <TableCell>{y.ToolName}</TableCell>
-                                                    <TableCell>{y.SerialNo}</TableCell>
-                                                    <TableCell>{y.EmployeeName}</TableCell>
-                                                    <TableCell>{moment(y.DateBorrowed).format("MMM DD, yyyy")}</TableCell>
-                                                    <TableCell style={{ textAlign: 'center' }}>{y.Status === "Returned" ? <Icon color='green' size='large' name='checkmark' /> : ""}</TableCell>
-                                                    <TableCell>{y.DateReturned ? moment(y.DateReturned).format("MMM DD, yyyy | HH:mm a") : ""}</TableCell>
-                                                    <TableCell style={{ textAlign: 'center' }}>
-                                                        <div className='ui one buttons'>
-                                                            {y.Status !== "Returned" ?
-                                                                <Button.Group>
-                                                                    <Button basic color='grey' onClick={() => handleEditItem(y)}>
-                                                                        <Icon name='edit' />Edit
-                                                                    </Button>
-                                                                    <Button basic color='grey' onClick={() => handleOpenReturnModal(y._id)}>
-                                                                        <Icon name='reply' />Return
-                                                                    </Button>
-                                                                </Button.Group>
-                                                                :
-                                                                ""
-                                                            }
-                                                        </div>
-                                                    </TableCell>
-                                                </Table.Row>
-                                            </Table.Body>
-                                        )}
-                                    </Table>
-                                </Card.Content>
-
-                                <Card.Content extra style={{ marginTop: 10 }}>
-                                    <div className='ui two buttons'>
-                                        <Button basic color='grey' onClick={() => handleOpenEditModal(x)}>
-                                            Edit
-                                        </Button>
-                                        <Button basic color='grey' onClick={() => handleOpenDeletePopup(x.id)}>
-                                            Delete
-                                        </Button>
-                                    </div>
-                                </Card.Content>
-                            </Card.Content>
-                        </Card>
-                    )}
-                </Card.Group>
-
-                {Object.keys(selectedProject).length === 0 &&
-                    < Pagination
-                        activePage={page}
-                        boundaryRange={boundaryRange}
-                        onPageChange={(e, { activePage }) => setPage(activePage)}
-                        size='mini'
-                        siblingRange={siblingRange}
-                        totalPages={totalForm / 5}
-                        // Heads up! All items are powered by shorthands, if you want to hide one of them, just pass `null` as value
-                        ellipsisItem={showEllipsis ? undefined : null}
-                        firstItem={showFirstAndLastNav ? undefined : null}
-                        lastItem={showFirstAndLastNav ? undefined : null}
-                        prevItem={showPreviousAndNextNav ? undefined : null}
-                        nextItem={showPreviousAndNextNav ? undefined : null}
-                        style={{ float: 'right', marginTop: 20 }}
-                    />
-                }
-            </div> */}
 
             <Modal
                 size="mini"
@@ -1156,9 +1065,16 @@ const Projects = () => {
                     <Button onClick={handleCloseAddModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddProject}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!addloader &&
+                        <Button onClick={handleAddProject} disabled={addloader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {addloader &&
+                        <Button onClick={handleAddProject} disabled={addloader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1230,9 +1146,16 @@ const Projects = () => {
                     <Button onClick={handleCloseEditModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleEditProjects}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleEditProjects} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleEditProjects} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1316,9 +1239,16 @@ const Projects = () => {
                     <Button onClick={handleCancelEditItem}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmitEditItem}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleSubmitEditItem} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleSubmitEditItem} disabled={loader}>
+                            <Icon loader name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1335,9 +1265,16 @@ const Projects = () => {
                     <Button onClick={handleCloseDeleteModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button negative onClick={handleDeleteItem}>
-                        <Icon name='trash' />Delete
-                    </Button>
+                    {!loader &&
+                        <Button negative onClick={handleDeleteItem} disabled={loader}>
+                            <Icon name='trash' />Delete
+                        </Button>
+                    }
+                    {loader &&
+                        <Button negative onClick={handleDeleteItem} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1368,9 +1305,16 @@ const Projects = () => {
                     <Button onClick={handleCloseReturnModal}>
                         <Icon name='close' />Cancel
                     </Button>
-                    <Button positive onClick={handleReturnTools}>
-                        <Icon name='reply' />Return
-                    </Button>
+                    {!loader &&
+                        <Button positive onClick={handleReturnTools} disabled={loader}>
+                            <Icon name='reply' /> Return
+                        </Button>
+                    }
+                    {loader &&
+                        <Button positive onClick={handleReturnTools} disabled={loader}>
+                            <Icon loading name='spinner' />
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
 
@@ -1459,9 +1403,16 @@ const Projects = () => {
                     <Button onClick={handleCloseBorrowModal}>
                         Cancel
                     </Button>
-                    <Button onClick={handleAddTools}>
-                        <Icon name='save' />Submit
-                    </Button>
+                    {!loader &&
+                        <Button onClick={handleAddTools} disabled={loader}>
+                            <Icon name='save' /> Submit
+                        </Button>
+                    }
+                    {loader &&
+                        <Button onClick={handleAddTools} disabled={loader}>
+                            <Icon loading name='spinner' /> 
+                        </Button>
+                    }
                 </Modal.Actions>
             </Modal>
         </div>
