@@ -4,7 +4,7 @@ import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
-const axios = require("axios");
+import axios from 'axios';
 
 const customMultiSelectStyle = {
     clearIndicator: (ci) => ({

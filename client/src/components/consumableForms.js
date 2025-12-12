@@ -4,6 +4,8 @@ import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
+import axios from 'axios';
+import moment from 'moment';
 
 //import pdfmake
 import pdfMake from 'pdfmake/build/pdfmake.js';
@@ -11,8 +13,6 @@ import pdfFonts from 'pdfmake/build/vfs_fonts.js';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-const axios = require("axios");
-const moment = require("moment");
 
 const customMultiSelectStyle = {
     clearIndicator: (ci) => ({

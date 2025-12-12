@@ -5,11 +5,11 @@ import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 //Components
 import Login from './components/login';
 import UserContext from './components/context/userContext';
+import axios from 'axios';
 
 // Components
 import Main from './components/main';
 
-const axios = require('axios');
 
 function App() {
   const [userData, setUserData] = useState({

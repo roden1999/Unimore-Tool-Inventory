@@ -6,14 +6,13 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useMediaQuery } from 'react-responsive';
 import moment from 'moment';
+import axios from 'axios';
 
 //import pdfmake
 import pdfMake from 'pdfmake/build/pdfmake.js';
 import pdfFonts from 'pdfmake/build/vfs_fonts.js';
 
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
-
-const axios = require("axios");
 
 const customMultiSelectStyle = {
     clearIndicator: (ci) => ({

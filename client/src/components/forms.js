@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react'
 import { Tab } from 'semantic-ui-react'
 import 'semantic-ui-css/semantic.min.css';
 import Select from 'react-select';
+import axios from 'axios';
+import moment from 'moment';
 
 //Components
 import Projects from './projects';
 import ConsumablesForms from './consumableForms';
 
-const axios = require("axios");
-const moment = require("moment");
 
 const customSelectStyle = {
     control: base => ({

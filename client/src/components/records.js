@@ -5,8 +5,8 @@ import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'
 import { useMediaQuery } from 'react-responsive';
-const axios = require("axios");
-const moment = require("moment");
+import axios from 'axios';
+import moment from 'moment';
 
 const customMultiSelectStyle = {
     clearIndicator: (ci) => ({
