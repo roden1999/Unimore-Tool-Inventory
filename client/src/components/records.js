@@ -126,6 +126,7 @@ const Records = () => {
     const showPreviousAndNextNav = true;
 
     useEffect(() => {
+        setLoader(true);
         var data = {
             searchTool: !searchTool ? [] : searchTool,
             page: borrowedPage
@@ -157,8 +158,9 @@ const Records = () => {
             })
             .finally(function () {
                 // always executed
+                setLoader(false);
             });
-    }, [selectedRecord, searchTool, borrowedPage, loader]);
+    }, [selectedRecord, searchTool, borrowedPage]);
 
     const recordsList = recordData
         ? recordData.map((x) => ({

@@ -180,6 +180,7 @@ const Tools = () => {
 
 
     useEffect(() => {
+        setLoader(true);
         var data = {
             selectedTools: !selectedTools ? [] : selectedTools,
             brandFilter: !brandFilter ? [] : brandFilter,
@@ -211,8 +212,9 @@ const Tools = () => {
             })
             .finally(function () {
                 // always executed
+                setLoader(false);
             });
-    }, [selectedTools, loader, toolPage, brandFilter, categoryFilter, statusFilter]);
+    }, [selectedTools, toolPage, brandFilter, categoryFilter, statusFilter]);
 
     const toolsList = toolsData
         ? toolsData.map((x) => ({
