@@ -12,7 +12,7 @@
     "client": "cd client && npm start"
   },
   "engines": {
-    "node": "10.16.0"
+    "node": "18.x"
   },
   "author": "Roden",
   "license": "ISC",
